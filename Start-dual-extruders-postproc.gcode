@@ -1,7 +1,7 @@
 ;- - - Custom G-code for dual extruder printing with FlashForge Creator Pro - - -
 ;- - - FOR USE IN COMBINATION WITH DUALSTRUSION POST-PROCESSING SCRIPT 0.6 OR NEWER ONLY - - -
 ;- - - Using it without the script will result in the print failing horribly! - - -
-;- - - by DrLex; 2016/09-2017/12. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2018/01. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
 ; Do not forget to enable a skirt up to the tallest layer that has two materials, and
 ;   set minimum skirt extrusion length to have at least 3 loops in the first layer.
@@ -163,11 +163,11 @@ M83; use relative E coordinates
 G1 Z20 F1500; move Z to waiting height
 G1 X135 Y75 F1500; do a slow small move because the first move is likely not accelerated
 G1 X-70 Y-82 F8400; move to waiting position (front left corner of print bed
-M18 E; disable extruder steppers while heating
+M18 A B; disable extruder steppers while heating
 M190 S[first_layer_bed_temperature]; Wait for bed to heat up. Leave extruders at 140C, to avoid cooking the filament.
 ; Set 1st nozzle heater to first layer temperature and wait for it to heat.
 ; Do not use M116: we do not want to wait for T1 because its temperature is currently irrelevant.
-; Do not use M109: older versions of Sailfish treat it the same as M104, again demonstrating the horrible lack of standardisation in G-code.
+; Do not use M109: some versions of Sailfish treat it like M104 and do not wait, again demonstrating the horrible lack of standardisation in G-code.
 M104 S[first_layer_temperature_0] T0
 M6 T0; This is actually tool change + wait for heating, but we are already at T0.
 M17; re-enable all steppers

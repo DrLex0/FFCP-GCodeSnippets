@@ -1,5 +1,5 @@
 ;- - - Custom G-code for right extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2017/12. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2018/01. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
 ;
 ;SUMMARY
@@ -139,11 +139,11 @@ M83; use relative E coordinates
 G1 Z20 F1500; move Z to waiting height
 G1 X135 Y75 F1500; do a slow small move because the first move is likely not accelerated
 G1 X-70 Y-82 F8400; move to waiting position (front left corner of print bed)
-M18 E; disable extruder steppers while heating
+M18 A B; disable extruder steppers while heating
 M190 S[first_layer_bed_temperature]; Wait for bed to heat up. Leave extruder at 140C, to avoid cooking the filament.
 M104 S[first_layer_temperature] T0; set nozzle heater to first layer temperature
 M116; wait for everything to reach target temperature
-M17; re-enable all steppers
+M17 A; re-enable right extruder stepper
 G1 Z0 F1000
 G1 X-70 Y-73 F4000; chop off any ooze on the front of the bed
 G1 Z[first_layer_height] F1500; move to first layer height

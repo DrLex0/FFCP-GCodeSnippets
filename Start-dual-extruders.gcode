@@ -1,5 +1,5 @@
 ;- - - Custom G-code for dual extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2017/12. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2018/01. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
 ; NOTE: you really should be using my dualstrusion-postproc script together
 ; with its corresponding start code, it will yield much better results.
@@ -160,7 +160,7 @@ G1 X70 Y-82 F8400; move to waiting position (front right corner of print bed), a
 G1 F4000; set speed for tool change, keep it low because not accelerated.
 T1; initialise the left extruder first, this minimises tool changes, assuming the print will start with the right extruder.
 G4 P0; flush pipeline
-M18 E; disable extruder steppers while heating
+M18 A B; disable extruder steppers while heating
 M190 S[first_layer_bed_temperature]; Wait for bed to heat up. Leave extruders at 140C, to avoid cooking the filament.
 M104 S[first_layer_temperature_0] T0; set 1st nozzle heater to first layer temperature
 M104 S[first_layer_temperature_1] T1; set 2nd nozzle heater to first layer temperature
