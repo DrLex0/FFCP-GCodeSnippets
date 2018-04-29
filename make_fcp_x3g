@@ -43,6 +43,11 @@ RETRACT_SCRIPT=/Users/athomas/bin/retraction-improver.pl
 # regardless of -k option (useful for debugging).
 KEEP_ORIG=0
 
+# Add extra PATH components here, separated by the usual ':'. You'll need this
+# in case some of the scripts require an interpreter (e.g. python3) that is not
+# in the stripped-down PATH of Slic3r's environment.
+EXTRA_PATH='/usr/local/bin:/usr/local/sbin'
+
 ############ No user serviceable parts below ############
 
 function usage
@@ -82,6 +87,10 @@ if [ -z "$1" ]; then
 	echo "Error: argument should be the path to a .gcode file" >&2
 	usage
 	exit 2
+fi
+
+if [ -n "$EXTRA_PATH" ]; then
+	export PATH=$(awk "{ sub(/:\/usr\/bin:/, \":${EXTRA_PATH}:/usr/bin:\"); print }" <<< "$PATH")
 fi
 
 arg_p=''
@@ -158,4 +167,6 @@ if [ -n "$force_progress" ]; then
 	arg_p=' -p'
 fi
 
+# TODO: errors from this command should also be collected. Perhaps filter out the M132 warnings,
+# although they should not appear with properly written start code. 
 "${GPX}" $arg_p -m fcp "$1"
