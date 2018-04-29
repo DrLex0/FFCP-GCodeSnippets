@@ -8,6 +8,6 @@ M109 S0 T0; set bed temperature to 0
 M104 S0 T0; set 1st extruder temperature to 0
 M104 S0 T1; set 2nd extruder temperature to 0
 M18; disable all stepper motors
-M70 P5; We <3 Making Things!
+M70 P3; We <3 Making Things!
 M72 P1; Play Ta-Da song
 ;- - - End finish printing G-code - - -
