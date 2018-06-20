@@ -11,7 +11,7 @@
 # To disable all post-processing scripts and merely invoke GPX, add '-P' as
 #   first argument.
 #
-# Version: 20180618
+# Version: 20180620
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Released under Creative Commons Attribution 4.0 International license.
 
@@ -29,11 +29,14 @@ GPX=/usr/local/bin/gpx
 # See https://github.com/DrLex0/DualstrusionPostproc for more information.
 DUALSTRUDE_SCRIPT=/Users/athomas/bin/dualstrusion-postproc.pl
 
-# Path to the PWM postprocessor script in case you would be using my slightly
-# crazy solution to get variable fan speed on your FFCP by letting a Raspberry
-# Pi detect beep sequences. See https://github.com/DrLex0/MightyVariableFan for
-# more information.
+# Path to the PWM postprocessor script in case you would be using the
+# MightyVariableFan system, my slightly crazy solution to obtain variable fan
+# speed by having the FFCP communicate with a Raspberry Pi through beep sounds.
+# See https://github.com/DrLex0/MightyVariableFan for more information.
 PWM_SCRIPT=/Users/athomas/bin/pwm_postprocessor.py
+# Extra options to be passed to the PWM_SCRIPT, for instance you may want to
+# change options from their defaults, like --allow_split or --zmax.
+#PWM_OPTS='--allow_split'
 
 # Path to the experimental retraction improver script.
 # (Note: you probably don't have this script because I haven't released it yet,
@@ -166,7 +169,7 @@ if [ -z "${no_postproc}" ]; then
 	fi
 
 	if [ -x "${PWM_SCRIPT}" ]; then
-		run_script 'fan PWM post-processing' "${PWM_SCRIPT}" "$1"
+		run_script 'fan PWM post-processing' "${PWM_SCRIPT}" "$1" $PWM_OPTS
 	fi
 
 	# -p overrides % display with something that better approximates total print time than merely
