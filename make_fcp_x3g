@@ -17,9 +17,13 @@
 
 #### Modify the following values to match your setup: ####
 
-# Path to the gpx binary. This binary must list 'fcp' as one of the allowed
-# values for the -m argument. Find another version if yours does not.
+# Path to the gpx binary.
 GPX=/usr/local/bin/gpx
+
+# Run `gpx -?` and look at the 'MACHINE' section. If it lists 'fcp' as one of
+# the allowed values, it is preferable to use that value here. Otherwise, use
+# 'r1d' instead, or something custom if you know what you're doing.
+MACHINE=fcp
 
 # The following settings are optional and will be silently ignored if the paths
 # do not point to *executable* files. You don't need to explicitly comment them
@@ -186,4 +190,4 @@ fi
 
 # TODO: errors from this command should also be collected. Perhaps filter out the M132 warnings,
 # although they should not appear with properly written start code. 
-"${GPX}" $arg_p -m fcp "$1"
+"${GPX}" $arg_p -m "${MACHINE}" "$1"
