@@ -11,7 +11,7 @@
 # To disable all post-processing scripts and merely invoke GPX, add '-P' as
 #   first argument.
 #
-# Version: 20180620
+# Version: 20180901
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Released under Creative Commons Attribution 4.0 International license.
 
@@ -45,7 +45,7 @@ PWM_SCRIPT=/Users/athomas/bin/pwm_postprocessor.py
 # Path to the experimental retraction improver script.
 # (Note: you probably don't have this script because I haven't released it yet,
 # and I'm not sure if I ever will because it is a hideous hack).
-RETRACT_SCRIPT=/Users/athomas/bin/retraction-improver.pl
+#RETRACT_SCRIPT=/Users/athomas/bin/retraction-improver.pl
 
 # Set this to 1 to always keep a backup of the unprocessed gcode file,
 # regardless of -k option (useful for debugging).
@@ -56,6 +56,12 @@ KEEP_ORIG=0
 # in the stripped-down PATH of Slic3r's environment.
 EXTRA_PATH='/usr/local/bin:/usr/local/sbin'
 
+# Set this to 1 to run the sanity check before processing a file and write the
+# result to a file 'make_fcp_x3g.check'. This is useful to debug problems when
+# not all post-processing scripts seem to work when invoking make_fcp_x3g from
+# within Slic3r or other programs.
+DEBUG=0
+
 ############ No user serviceable parts below ############
 
 function usage
@@ -64,17 +70,23 @@ function usage
 	echo "Processes G-code file for the FFCP with GPX, after optionally applying certain fixes."
 	echo "Output will be written to a file with the same name and .x3g extension."
 	echo "Options:"
+	echo "  -c: performs a sanity check on all configured paths and warns if they do not"
+	echo "      point to executable files. (Nothing will be processed even if other"
+	echo "      arguments are passed.)"
 	echo "  -P: disables all postprocessing, including the -p option of GPX."
 	echo "  -p: enable -p option of GPX even if -P is used."
 	echo "  -k: keep copy of original file."
 }
 
 
-while getopts ':hPpk' opt; do
+while getopts ':hcPpk' opt; do
 	case $opt in
 		h)
 			usage
 			exit
+			;;
+		c)
+			sanity=1
 			;;
 		P)
 			no_postproc=1
@@ -91,6 +103,57 @@ while getopts ':hPpk' opt; do
 	esac
 done
 
+if [ -n "${EXTRA_PATH}" ]; then
+	export PATH=$(echo "${PATH}" | awk "{ sub(/:\/usr\/bin:/, \":${EXTRA_PATH}:/usr/bin:\"); print }")
+fi
+
+function sanity_check
+{
+	local fail
+
+	if [ ! -x "${GPX}" ]; then
+		echo "Check failed: the 'GPX' path does not point to an executable file: '${GPX}'"
+		fail=1
+	elif ! "${GPX}" -? > /dev/null; then
+		echo "Check failed: got unexpected result code when running GPX with -? argument."
+		fail=1
+	fi
+	if [ -n "${DUALSTRUDE_SCRIPT}" -a ! -x "${DUALSTRUDE_SCRIPT}" ]; then
+		echo "Check failed: a 'DUALSTRUDE_SCRIPT' path was specified but does not point to an executable file: ${DUALSTRUDE_SCRIPT}"
+		fail=1
+	fi
+	if [ -n "${PWM_SCRIPT}" ]; then
+		if [ ! -x "${PWM_SCRIPT}" ]; then
+			echo "Check failed: a 'PWM_SCRIPT' path was specified but does not point to an executable file: ${PWM_SCRIPT}"
+			fail=1
+		else
+			if ! "${PWM_SCRIPT}" -h > /dev/null; then
+				echo "Check failed: got unexpected result code when running PWM_SCRIPT with -h argument."
+				fail=1
+			fi
+		fi
+	fi
+	if [ -n "${RETRACT_SCRIPT}" ]; then
+		if [ ! -x "${RETRACT_SCRIPT}" ]; then
+			echo "Check failed: a 'RETRACT_SCRIPT' path was specified but does not point to an executable file: ${RETRACT_SCRIPT}"
+			fail=1
+		else
+			if ! "${RETRACT_SCRIPT}" -h > /dev/null; then
+				echo "Check failed: got unexpected result code when running RETRACT_SCRIPT with -h argument."
+				fail=1
+			fi
+		fi
+	fi
+	if [ -z "${fail}" ]; then
+		echo 'All checks seem OK!'
+	fi
+}
+
+if [ -n "${sanity}" ]; then
+	sanity_check
+	exit
+fi
+
 shift $((OPTIND-1))
 if [ -z "$1" ]; then
 	echo "Error: argument should be the path to a .gcode file" >&2
@@ -98,8 +161,9 @@ if [ -z "$1" ]; then
 	exit 2
 fi
 
-if [ -n "${EXTRA_PATH}" ]; then
-	export PATH=$(echo "${PATH}" | awk "{ sub(/:\/usr\/bin:/, \":${EXTRA_PATH}:/usr/bin:\"); print }")
+if [ "${DEBUG}" == '1' ]; then
+	output=$(dirname "$1")
+	sanity_check > "${output}/make_fcp_x3g.check"
 fi
 
 arg_p=''
