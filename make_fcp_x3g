@@ -10,13 +10,13 @@
 # Should be called with only a single argument: the G-code file.
 # Run with -h for usage info (or just look at usage below).
 #
-# To use with a Windows WSG environment, create a .BAT file containing one line
+# To use with a Windows WSL environment, create a .BAT file containing one line
 # as follows, and specify this .BAT file as a post-processing script in Slic3r:
 #     bash /your/linux/path/to/make_fcp_x3g -w '%1'
 #
 # Version: 20180904
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
-# Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSG stuff
+# Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
 
 #### Modify the following values to match your setup: ####
@@ -79,7 +79,7 @@ function usage
 	echo "  -c: performs a sanity check on all configured paths and warns if they do not"
 	echo "      point to executable files. (Nothing will be processed even if other"
 	echo "      arguments are passed.)"
-	echo "  -w: converts Windows file path to a Linux path inside a WSG environment."
+	echo "  -w: converts Windows file path to a Linux path inside a WSL environment."
 	echo "  -P: disables all postprocessing and only runs GPX without -p option."
 	echo "  -p: enable -p option of GPX even if -P is used."
 	echo "  -k: keep copy of original file."
@@ -96,7 +96,7 @@ while getopts ':hcwPpk' opt; do
 			sanity=1
 			;;
 		w)
-			wsg=1
+			wsl=1
 			;;
 		P)
 			no_postproc=1
@@ -173,7 +173,7 @@ if [ -z "${inputfile}" ]; then
 	exit 2
 fi
 
-if [ -n "${wsg}" ]; then
+if [ -n "${wsl}" ]; then
 	DRIVE="${inputfile%%:*}"
 	drive=$(tr '[:upper:]' '[:lower:]' <<<"${DRIVE}")
 	inputfile=$(sed "s|${DRIVE}:|/mnt/${drive}|" <<<"${inputfile}" | tr '\\' '/')
