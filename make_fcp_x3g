@@ -8,16 +8,21 @@
 # 4. Optionally applies my retraction improver hack.
 # 5. Sends the G-code file through GPX to produce an x3g file.
 # Should be called with only a single argument: the G-code file.
-# To disable all post-processing scripts and merely invoke GPX, add '-P' as
-#   first argument.
+# Run with -h for usage info (or just look at usage below).
 #
-# Version: 20180901
+# To use with a Windows WSG environment, create a .BAT file containing one line
+# as follows, and specify this .BAT file as a post-processing script in Slic3r:
+#     bash /your/linux/path/to/make_fcp_x3g -w '%1'
+#
+# Version: 20180904
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
+# Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSG stuff
 # Released under Creative Commons Attribution 4.0 International license.
 
 #### Modify the following values to match your setup: ####
 
-# Path to the gpx binary.
+# Path to the gpx binary. Try `which gpx` if you're not sure what is the
+# correct path.
 GPX=/usr/local/bin/gpx
 
 # Run `gpx -?` and look at the 'MACHINE' section. If it lists 'fcp' as one of
@@ -66,20 +71,22 @@ DEBUG=0
 
 function usage
 {
-	echo "$0 [-Ppk] input.gcode"
+	local prog=$(basename "$0")
+	echo "${prog} [-wPpk] input.gcode   or:   ${prog} -c"
 	echo "Processes G-code file for the FFCP with GPX, after optionally applying certain fixes."
 	echo "Output will be written to a file with the same name and .x3g extension."
 	echo "Options:"
 	echo "  -c: performs a sanity check on all configured paths and warns if they do not"
 	echo "      point to executable files. (Nothing will be processed even if other"
 	echo "      arguments are passed.)"
-	echo "  -P: disables all postprocessing, including the -p option of GPX."
+	echo "  -w: converts Windows file path to a Linux path inside a WSG environment."
+	echo "  -P: disables all postprocessing and only runs GPX without -p option."
 	echo "  -p: enable -p option of GPX even if -P is used."
 	echo "  -k: keep copy of original file."
 }
 
 
-while getopts ':hcPpk' opt; do
+while getopts ':hcwPpk' opt; do
 	case $opt in
 		h)
 			usage
@@ -87,6 +94,9 @@ while getopts ':hcPpk' opt; do
 			;;
 		c)
 			sanity=1
+			;;
+		w)
+			wsg=1
 			;;
 		P)
 			no_postproc=1
@@ -149,27 +159,41 @@ function sanity_check
 	fi
 }
 
+
 if [ -n "${sanity}" ]; then
 	sanity_check
 	exit
 fi
 
 shift $((OPTIND-1))
-if [ -z "$1" ]; then
+inputfile="$1"
+if [ -z "${inputfile}" ]; then
 	echo "Error: argument should be the path to a .gcode file" >&2
 	usage
 	exit 2
 fi
 
+if [ -n "${wsg}" ]; then
+	DRIVE="${inputfile%%:*}"
+	drive=$(tr '[:upper:]' '[:lower:]' <<<"${DRIVE}")
+	inputfile=$(sed "s|${DRIVE}:|/mnt/${drive}|" <<<"${inputfile}" | tr '\\' '/')
+	echo "Converted Windows path to: '${inputfile}'"
+fi
+
 if [ "${DEBUG}" == '1' ]; then
-	output=$(dirname "$1")
+	output=$(dirname "${inputfile}")
 	sanity_check > "${output}/make_fcp_x3g.check"
 fi
 
+if [ ! -r "${inputfile}" ]; then
+	echo "ERROR: input file not found or not readable: ${inputfile}"
+	exit 1
+fi
+
 arg_p=''
-# Do not use sed, sed in OS X stinks.
-origfile=$(echo "$1" | perl -pe 's/\.gcode$/_orig.gcode/i')
-stripped=$(echo "$1" | perl -pe 's/\.gcode$//i')
+# Avoid using sed, sed in OS X stinks.
+origfile=$(echo "${inputfile}" | perl -pe 's/\.gcode$/_orig.gcode/i')
+stripped=$(echo "${inputfile}" | perl -pe 's/\.gcode$//i')
 warn_file="${stripped}.WARN.txt"
 fail_file="${stripped}.FAIL.txt"
 
@@ -203,41 +227,42 @@ function run_script
 	chmod 644 "${gcode}"
 }
 
+
 if [ -z "${no_postproc}" ]; then
 	rm -f "${warn_file}" "${fail_file}"
 
 	if [ "${KEEP_ORIG}" == "1" ]; then
-		cp -p "$1" "${origfile}"
+		cp -p "${inputfile}" "${origfile}"
 	fi
 
-	if [ -x "${DUALSTRUDE_SCRIPT}" ] && grep -q 'FOR USE IN COMBINATION WITH DUALSTRUSION POST-PROCESSING SCRIPT .*ONLY' "$1" 2>/dev/null; then
-		run_script 'dualstrusion' "${DUALSTRUDE_SCRIPT}" "$1"
-	elif grep -qE ';- - - Custom G-code for (left|right) extruder printing' "$1" 2>/dev/null; then
+	if [ -x "${DUALSTRUDE_SCRIPT}" ] && grep -q 'FOR USE IN COMBINATION WITH DUALSTRUSION POST-PROCESSING SCRIPT .*ONLY' "${inputfile}" 2>/dev/null; then
+		run_script 'dualstrusion' "${DUALSTRUDE_SCRIPT}" "${inputfile}"
+	elif grep -qE ';- - - Custom G-code for (left|right) extruder printing' "${inputfile}" 2>/dev/null; then
 		# Work around bug in Slic3r that always causes T0 to be heated if the second layer has a
 		# different filament temperature. See https://github.com/alexrj/Slic3r/issues/4003
 		# This hack simply wipes the T argument, which works by the grace of how GPX processes the commands.
-		if grep -qE '^M104 S.+ T.+; set temperature$' "$1"; then
+		if grep -qE '^M104 S.+ T.+; set temperature$' "${inputfile}"; then
 			# I am entirely relying here on the assumption that any version of Slic3r will
 			# keep on printing the code with a comment exactly like this.
 			echo "Fixing incorrect M104 command for single-extrusion setup"
-			perl -pi.trashme -e 's/^M104 S(\S+) (T.*); set temperature$/M104 S$1 ; POSTPROCESS FIX: $2 ARGUMENT REMOVED/' "$1"
-			rm -f "$1.trashme"
+			perl -pi.trashme -e 's/^M104 S(\S+) (T.*); set temperature$/M104 S$1 ; POSTPROCESS FIX: $2 ARGUMENT REMOVED/' "${inputfile}"
+			rm -f "${inputfile}.trashme"
 		fi
 	fi
 
-	if grep -qE '^M83(;| |$)' "$1"; then
+	if grep -qE '^M83(;| |$)' "${inputfile}"; then
 		# Workaround for issue #60 in gCodeViewer (gcode.ws) that messes up rendering if an M83 is followed by a G90.
 		# Again, I'm assuming Slic3r will always print the line exactly like this:
-		perl -pi.trashme -e 's/^(G90 ; use absolute coordinates)$/$1\nM83; POSTPROCESS workaround for relative E in gcode.ws/' "$1"
-		rm -f "$1.trashme"
+		perl -pi.trashme -e 's/^(G90 ; use absolute coordinates)$/$1\nM83; POSTPROCESS workaround for relative E in gcode.ws/' "${inputfile}"
+		rm -f "${inputfile}.trashme"
 	fi
 
 	if [ -x "${RETRACT_SCRIPT}" ]; then
-		run_script 'retraction' "${RETRACT_SCRIPT}" "$1"
+		run_script 'retraction' "${RETRACT_SCRIPT}" "${inputfile}"
 	fi
 
 	if [ -x "${PWM_SCRIPT}" ]; then
-		run_script 'fan PWM post-processing' "${PWM_SCRIPT}" "$1" $PWM_OPTS
+		run_script 'fan PWM post-processing' "${PWM_SCRIPT}" "${inputfile}" $PWM_OPTS
 	fi
 
 	# -p overrides % display with something that better approximates total print time than merely
@@ -254,4 +279,4 @@ fi
 
 # TODO: errors from this command should also be collected. Perhaps filter out the M132 warnings,
 # although they should not appear with properly written start code. 
-"${GPX}" $arg_p -m "${MACHINE}" "$1"
+"${GPX}" $arg_p -m "${MACHINE}" "${inputfile}"
