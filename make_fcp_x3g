@@ -10,11 +10,15 @@
 # Should be called with only a single argument: the G-code file.
 # Run with -h for usage info (or just look at usage below).
 #
-# To use with a Windows WSL environment, create a .BAT file containing one line
-# as follows, and specify this .BAT file as a post-processing script in Slic3r:
-#     bash /your/linux/path/to/make_fcp_x3g -w '%1'
+# To use with a Windows WSL environment, create a .BAT file containing the
+# following 3 lines, and specify this .BAT file as a post-processing script
+# in Slic3r. You need at least Windows 10 version 1803 for this to work.
+#     set fpath=%~1
+#     set fpath=%fpath:'='"'"'%
+#     bash /your/linux/path/to/make_fcp_x3g -w '%fpath%'
 #
-# Version: 20180904
+#
+# Version: 20181002
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
@@ -119,7 +123,7 @@ fi
 
 function sanity_check
 {
-	local fail
+	local fail try_path
 
 	if [ ! -x "${GPX}" ]; then
 		echo "Check failed: the 'GPX' path does not point to an executable file: '${GPX}'"
@@ -154,6 +158,15 @@ function sanity_check
 			fi
 		fi
 	fi
+	if grep -qE '(Microsoft|WSL)' /proc/version &> /dev/null; then
+		try_path=$(wslpath -a 'C:\\Test\\file.zip')
+		if [ $? != 0 -o -z "${try_path}" ]; then
+			echo "Check failed: you seem to be inside a WSL environment but the 'wslpath' command is not available or is broken."
+			echo "Make sure you have at least Windows 10 version 1803, and 'wslpath' can be run from a bash shell."
+			fail=1
+		fi
+	fi
+
 	if [ -z "${fail}" ]; then
 		echo 'All checks seem OK!'
 	fi
@@ -174,9 +187,13 @@ if [ -z "${inputfile}" ]; then
 fi
 
 if [ -n "${wsl}" ]; then
-	DRIVE="${inputfile%%:*}"
-	drive=$(tr '[:upper:]' '[:lower:]' <<<"${DRIVE}")
-	inputfile=$(sed "s|${DRIVE}:|/mnt/${drive}|" <<<"${inputfile}" | tr '\\' '/')
+	# Although the conversion between Windows and Linux paths seems trivial, it
+	# has many quirks so it is better to rely on the dedicated wslpath tool.
+	inputfile=$(wslpath -a "${inputfile}")
+	if [ $? != 0 -o -z "${inputfile}" ]; then
+		echo "Error: 'wslpath' command not found or failed" >&2
+		exit 3
+	fi
 	echo "Converted Windows path to: '${inputfile}'"
 fi
 
