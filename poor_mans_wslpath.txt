@@ -1,0 +1,14 @@
+#!/bin/bash
+# This is a very crude approximation of the `wslpath` tool available in WSL
+# environments starting from Windows 10 version 1803.
+# If your WSL Linux environment already has a `wslpath` command, just ignore
+# this file. Otherwise rename it to 'wslpath', make it executable, and place
+# it in /usr/local/bin/.
+# This will not work correctly for file names that contain unusual characters
+# or if the mapping between Windows and Linux paths is not as expected.
+
+shift  # ignore the first argument (should be -a, otherwise this script certainly won't act as expected).
+
+DRIVE="${1%%:*}"
+drive=$(tr '[:upper:]' '[:lower:]' <<<"${DRIVE}")
+echo "$(sed "s|${DRIVE}:|/mnt/${drive}|" <<<"$1" | tr '\\' '/')"

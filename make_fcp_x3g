@@ -12,11 +12,14 @@
 #
 # To use with a Windows WSL environment, create a .BAT file containing the
 # following 3 lines, and specify this .BAT file as a post-processing script
-# in Slic3r. You need at least Windows 10 version 1803 for this to work.
+# in Slic3r.
 #     set fpath=%~1
 #     set fpath=%fpath:'='"'"'%
 #     bash /your/linux/path/to/make_fcp_x3g -w '%fpath%'
-#
+# For this to work, there must be a command `wslpath` inside your Linux
+# environment that converts Windows paths to their Linux equivalent. This is
+# the case if you use Microsoft's WSL images inside Windows 10 version 1803 or
+# newer. In other cases you need to provide your own `wslpath` script.
 #
 # Version: 20181002
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
