@@ -21,7 +21,7 @@
 # the case if you use Microsoft's WSL images inside Windows 10 version 1803 or
 # newer. In other cases you need to provide your own `wslpath` script.
 #
-# Version: 20181002
+# Version: 20190227
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
@@ -36,6 +36,21 @@ GPX=/usr/local/bin/gpx
 # the allowed values, it is preferable to use that value here. Otherwise, use
 # 'r1d' instead, or something custom if you know what you're doing.
 MACHINE=fcp
+
+# The absolutely highest Z value allowed by your printer. This both acts as a
+# sanity check and will also update the final Z move in the end G-code if it is
+# less than the height of the actual print. (If you would print something 160mm
+# tall without adjusting the default end code that sends Z to 150, ruin would
+# ensue.)
+# Although the official FFCP specs state maximum Z is 150mm, my printer actually
+# goes to 170. I distribute this file with 160 to err on the safe side. To get
+# the most out of your machine, do a test to see how deep it can go and adjust
+# Z_MAX accordingly, as well as 'Max print height' in Slic3r.
+Z_MAX=160
+
+# For the above to work, this must match the comment that marks the final
+# Z move in the end G-code.
+FINAL_Z_MOVE='; send Z axis to bottom of machine'
 
 # The following settings are optional and will be silently ignored if the paths
 # do not point to *executable* files. You don't need to explicitly comment them
@@ -247,12 +262,38 @@ function run_script
 	chmod 644 "${gcode}"
 }
 
+function get_highest_z
+{
+	# Extract highest Z value in a G1 command from the last 2048 lines of a file.
+	local gcode=$1
+
+	tail -n 2048 "${gcode}" | grep -oE '^G1 [^;]*Z\d*\.?\d+' | \
+	    awk '{print $2}' | cut -b 2- | sort -g | tail -n 1
+}
+
 
 if [ -z "${no_postproc}" ]; then
 	rm -f "${warn_file}" "${fail_file}"
 
 	if [ "${KEEP_ORIG}" == "1" ]; then
 		cp -p "${inputfile}" "${origfile}"
+	fi
+
+	highest_z=$(get_highest_z "${inputfile}")
+	if [ -z "${highest_z}" ]; then
+		echo 'WARNING: could not find highest Z coordinate. If this is a valid G-code file, the make_fcp_x3g script needs updating.' >> "${warn_file}"
+	else
+		if (( $(echo "${highest_z} > ${Z_MAX}" | bc -l) )); then
+			echo "WARNING: Z coordinates in this file exceed the maximum: ${highest_z} > ${Z_MAX}. This print will likely end in disaster." >> "${warn_file}"
+		fi
+		# Find the current final G1 command, its Z value, and transform it if we need to go higher.
+		final_move=$(grep "^G1 .*${FINAL_Z_MOVE}" "${inputfile}")
+		final_z=$(perl -pe 's/^G1 [^;]*Z(\d*\.?\d+).*$/$1/i' <<< "${final_move}")
+		if (( $(echo "${highest_z} > ${final_z}" | bc -l) )); then
+			# I know this looks horrible but all it does is replacing the Z coordinate with the new one.
+			perl -pi.trashme -e 's/^(G1 [^;]*)Z\d*\.?\d+(.*\Q'"${FINAL_Z_MOVE}"'\E.*)$/$1Z'"${highest_z}"'$2 ; EXTENDED!/i' "${inputfile}"
+			rm -f "${inputfile}.trashme"
+		fi
 	fi
 
 	if [ -x "${DUALSTRUDE_SCRIPT}" ] && grep -q 'FOR USE IN COMBINATION WITH DUALSTRUSION POST-PROCESSING SCRIPT .*ONLY' "${inputfile}" 2>/dev/null; then
