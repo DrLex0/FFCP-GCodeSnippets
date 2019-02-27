@@ -1,5 +1,7 @@
 ;- - - Custom G-code for left extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2018/01. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2019/02. Released under Creative Commons Attribution License. - - -
+; IMPORTANT: ensure your home offsets are correctly set. The Y home offset is correct if
+;   the initial extrusion performed by this code is at 3mm from the front edge of the bed.
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
 ;
 ;SUMMARY
@@ -118,7 +120,7 @@
 ;top/bottom fill pattern = [external_fill_pattern]
 ;
 ;- - - - - - - - - - - - - - - - - - - - - - - - -
-;
+
 T0; start with the right extruder. We will switch to T1 after having moved the print head to provide enough space for the nozzle offset.
 M73 P0; enable show build progress
 M140 S[first_layer_bed_temperature]; heat bed up to first layer temperature
@@ -128,17 +130,16 @@ G21; set units to mm
 M320; acceleration enabled for all commands that follow
 G162 X Y F8400; home XY axes maximum
 G161 Z F1500; roughly home Z axis minimum
-G92 X118 Y72.5 Z0 E0 B0; set (rough) reference point (also set E and B to make GPX happy). This also ensures correct visualisation in some programs.
+G92 X118 Y72.5 Z0 E0 B0; set (rough) reference point (also set E and B to make GPX happy). This will be overridden by the M132 below but ensures correct visualisation in some programs.
 G1 Z5 F1500; move the bed down again
 G4 P0; Wait for command to finish
 G161 Z F100; accurately home Z axis minimum
-G92 Z0; set accurate Z reference point
-M132 X Y Z A B; Recall stored home offsets (accurate reference point)
+M132 X Y Z A B; Recall stored home offsets (accurate reference point which you can configure in the printer's LCD menu).
 G90; set positioning to absolute
 M83; use relative E coordinates
 G1 Z20 F1500; move Z to waiting height
-G1 X135 Y75 F1500; do a slow small move because the first move is likely not accelerated
-G1 X70 Y-82 F8400; move to waiting position (front right corner of print bed), also makes room for the tool change
+G1 X140 Y65 F1500; do a slow small move to allow acceleration to be gently initialised
+G1 X70 Y-83 F8400; move to waiting position (front right corner of print bed), also makes room for the tool change
 ; In theory, Sailfish should combine the T1 with the next move. I have tried to make this work many times and I found it extremely unreliable, therefore I force an explicit tool swap as follows.
 G1 F4000; set speed for tool change, keep it low because not accelerated.
 T1; switch to the left extruder
@@ -149,14 +150,14 @@ M104 S[first_layer_temperature] T1; set nozzle heater to first layer temperature
 M116; wait for everything to reach target temperature
 M17 B; re-enable left extruder stepper
 G1 Z0 F1000
-G1 X70 Y-73 F4000; chop off any ooze on the front of the bed
+G1 X70 Y-74 F4000; chop off any ooze on the front of the bed
 G1 Z[first_layer_height] F1500; move to first layer height
-G1 X-121 Y-73 E24 F2000; extrude a line of filament across the front edge of the bed
+G1 X-121 E24 F2000; extrude a line of filament across the front edge of the bed (3mm from the front edge)
 ; Note how we extrude a little beyond the bed, this produces a tiny loop that makes it easier to remove the extruded strip.
-G1 Y-70 F2000
-G1 X-108 Y-73 F4000; cross the extruded line to close the loop
+G1 Y-71 F2000
+G1 X-108 Y-74 F4000; cross the extruded line to close the loop
 G1 X-100 F4000; wipe across the line (X direction)
-G1 X-90 Y-78 F6000; Move back for an additional wipe (Y direction)
+G1 X-90 Y-79 F6000; Move back for an additional wipe (Y direction)
 ;G92 E-0.6; This no longer works with relative E. The purpose was to compensate for the inexplicable but consistent under-extrusion that occurs at the start of the skirt. This compensation must now be done in a post-processing script.
 G1 F8400; in case Slic3r would not override this, ensure fast travel to first print move
 M73 P1 ;@body (notify GPX body has started)
