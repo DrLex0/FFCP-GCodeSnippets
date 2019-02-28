@@ -1,9 +1,12 @@
-# G-code Snippets and Scripts for Using Slic3r with the Flashforge Creator Pro
+# G-code Snippets, Config and Scripts for Using Slic3r with the Flashforge Creator Pro
 
-This repository contains two things:
+This repository contains three things:
 
 ## G-code snippets
-To be used in combination with my Slic3r profiles as can be found on Thingiverse ([Thing:2367215](https://www.thingiverse.com/thing:2367215)). These are also published separately in [Thing:2367350](https://www.thingiverse.com/thing:2367350) for convenience. Look on those Thing pages for instructions.
+To be used in combination with my Slic3r profiles as can be found on Thingiverse ([Thing:2367215](https://www.thingiverse.com/thing:2367215)). These snippets are also published separately in [Thing:2367350](https://www.thingiverse.com/thing:2367350) for convenience. Look on those Thing pages for instructions.
+
+## Slic3r config bundles
+The actual configuration bundles that can be imported into Slic3r. Given that it is somewhat cumbersome to update the G-code snippets embedded inside these configs, it is possible they will not always be in sync with the latest commits to the actual snippets. In that case you should paste the snippets into the Slic3r printer profiles to update them.
 
 ## The *make_fcp_x3g* script
 This script can be configured as a post-processing script in Slic3r to run specific post-processing scripts and finally generate an X3G file by invoking [GPX](https://github.com/markwal/GPX). This is a Bash script and can also be used with the WSL Linux environment in recent versions of Windows. To do this, create a BAT file that contains the following:
