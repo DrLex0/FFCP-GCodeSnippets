@@ -267,7 +267,7 @@ function get_highest_z
 	# Extract highest Z value in a G1 command from the last 2048 lines of a file.
 	local gcode=$1
 
-	tail -n 2048 "${gcode}" | grep -oE '^G1 [^;]*Z\d*\.?\d+' | \
+	tail -n 2048 "${gcode}" | grep -oE '^G1 [^;]*Z[0-9]*\.?[0-9]+' | \
 	    awk '{print $2}' | cut -b 2- | sort -g | tail -n 1
 }
 
