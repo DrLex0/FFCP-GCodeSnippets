@@ -21,7 +21,7 @@
 # the case if you use Microsoft's WSL images inside Windows 10 version 1803 or
 # newer. In other cases you need to provide your own `wslpath` script.
 #
-# Version: 20190227
+# Version: 20190329
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
@@ -136,7 +136,7 @@ while getopts ':hcwPpk' opt; do
 done
 
 if [ -n "${EXTRA_PATH}" ]; then
-	export PATH=$(echo "${PATH}" | awk "{ sub(/:\/usr\/bin:/, \":${EXTRA_PATH}:/usr/bin:\"); print }")
+	export PATH=$(echo "${PATH}" | perl -pe "s;(:|^)/usr/bin:;\1${EXTRA_PATH}:/usr/bin:;")
 fi
 
 function sanity_check
