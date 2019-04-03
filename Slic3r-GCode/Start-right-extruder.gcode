@@ -1,5 +1,5 @@
 ;- - - Custom G-code for right extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2019/02. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2019/04. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure your home offsets are correctly set. The Y home offset is correct if
 ;   the initial extrusion performed by this code is at 3mm from the front edge of the bed.
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
@@ -11,13 +11,18 @@
 ;first layer bed temperature = [first_layer_bed_temperature]C
 ;bed temperature = [bed_temperature]C
 ;
-;first layer height = [first_layer_height]mm
-;layer height = [layer_height]mm
-;z_offset = [z_offset]mm
+;bottom solid layers = [bottom_solid_layers]
+;top solid layers = [top_solid_layers]
 ;perimeters = [perimeters]
 ;seam position = [seam_position]
+;
+;layer height = [layer_height]mm
+;first layer height = [first_layer_height]mm
+;z_offset = [z_offset]mm
 ;fill density = [fill_density]
 ;fill pattern = [fill_pattern]
+;infill only where needed = [infill_only_where_needed]
+;
 ;skirts = [skirts]
 ;brim width = [brim_width]mm
 ;raft layers = [raft_layers]
@@ -25,9 +30,6 @@
 ;support material threshold = [support_material_threshold] degrees
 ;support material enforced for first n layers = [support_material_enforce_layers]
 ;support material extruder = [support_material_extruder]
-;
-;bottom solid layers = [bottom_solid_layers]
-;top solid layers = [top_solid_layers]
 ;
 ;first layer speed = [first_layer_speed]
 ;perimeter speed = [perimeter_speed]mm/s
@@ -78,11 +80,10 @@
 ;support material speed = [support_material_speed]mm/s
 ;
 ;
-;EVERYTHING ELSE
+;OTHER (see end of file for all parameters)
 ;
 ;complete objects = [complete_objects]
 ;cooling enabled = [cooling]
-;default acceleration = [default_acceleration]mm/s/s
 ;disable fan for first layers = [disable_fan_first_layers]
 ;duplicate distance = [duplicate_distance]mm
 ;external perimeters first = [external_perimeters_first]
@@ -95,14 +96,11 @@
 ;fill angle = [fill_angle] degrees
 ;gcode comments = [gcode_comments]
 ;gcode flavor = [gcode_flavor]
-;infill acceleration = [infill_acceleration]mm/s/s
 ;infill every n layers = [infill_every_layers]
 ;infill extruder = [infill_extruder]
 ;infill first = [infill_first]
-;infill only where needed = [infill_only_where_needed]
 ;minimum skirt length = [min_skirt_length]mm
 ;only retract when crossing perimeters = [only_retract_when_crossing_perimeters]
-;perimeter acceleration = [perimeter_acceleration]mm/s/s
 ;perimeter extruder = [perimeter_extruder]
 ;retract before travel = [retract_before_travel]
 ;retract on layer change = [retract_layer_change]
@@ -112,12 +110,10 @@
 ;retract extra distance on restart = [retract_restart_extra]mm
 ;retract extra on tool change = [retract_restart_extra_toolchange]mm
 ;retract speed = [retract_speed]mm/s
-;scale = [scale]
 ;skirt distance = [skirt_distance]mm
-;skirt height = [skirt_height]mm
+;skirt height = [skirt_height] layers
 ;solid infill below area = [solid_infill_below_area]mm (sq)
 ;solid infill every n layers = [solid_infill_every_layers]
-;top/bottom fill pattern = [external_fill_pattern]
 ;
 ;- - - - - - - - - - - - - - - - - - - - - - - - -
 
