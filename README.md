@@ -22,6 +22,8 @@ For instance if your Windows account name is *Foobar* and you named the file `sl
 
 For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file *poor_mans_wslpath.txt.*
 
+As a fallback for those Windows users who cannot use WSL, there is an alternative BAT script `simple_ffcp_postproc.bat` that can be used as post-processing script. It performs the two most essential functions of the `make_fcp_x3g` script, namely the tool temperature workaround and invoking GPX. It requires Perl to be installed, instructions are inside the file. This is only the bare minimum to use Slic3r with the FFCP, it is much recommended to use the Bash script instead if you can.
+
 
 ## License
 These files are released under a Creative Commons Attribution 4.0 International license.
