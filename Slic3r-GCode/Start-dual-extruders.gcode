@@ -1,10 +1,15 @@
 ;- - - Custom G-code for dual extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2019/04. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2019/07. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure your home offsets are correctly set. The Y home offset is correct if
 ;   the initial extrusion performed by this code is at 3mm from the front edge of the bed.
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
-; NOTE: you really should be using my dualstrusion-postproc script together
-;   with its corresponding start code instead, it will yield much better results.
+; Tips for better dual extrusion quality:
+; 1. Use my dualstrusion-postproc script version 1.0 or newer:
+;    https://github.com/DrLex0/DualstrusionPostproc
+;    It optimizes the file for much better results on printers like the FFCP.
+; 2. Enable a skirt up to the tallest layer that has two materials, and set minimum skirt
+;    extrusion length to have at least 3 loops in the first layer.
+; 3. Ensure nozzles are clean: no oozed filament and no gunk stuck to them.
 ;
 ;SUMMARY
 ;
@@ -188,3 +193,4 @@ G1 X90 Y-77 F6000; Move back for an additional wipe (Y direction)
 G1 F8400; in case Slic3r would not override this, ensure fast travel to first print move
 M73 P1 ;@body (notify GPX body has started)
 ;- - - End custom G-code for dual extruder printing - - -
+
