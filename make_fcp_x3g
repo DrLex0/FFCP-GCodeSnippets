@@ -21,7 +21,7 @@
 # the case if you use Microsoft's WSL images inside Windows 10 version 1803 or
 # newer. In other cases you need to provide your own `wslpath` script.
 #
-# Version: 20190706
+# Version: 20190809
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
@@ -152,6 +152,9 @@ function sanity_check
 		fail=1
 	elif ! "${GPX}" -? > /dev/null; then
 		echo "Check failed: got unexpected result code when running GPX with -? argument."
+		fail=1
+	elif ! echo 'T0' | "${GPX}" -i -m "${MACHINE}" >/dev/null 2>&1; then
+		echo "Check failed: got error when running GPX with '${MACHINE}' machine type. Make sure this is supported. If not, try 'r1d' instead."
 		fail=1
 	fi
 	if [ -n "${DUALSTRUDE_SCRIPT}" -a ! -x "${DUALSTRUDE_SCRIPT}" ]; then
