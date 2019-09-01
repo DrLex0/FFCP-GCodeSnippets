@@ -1,5 +1,7 @@
 # G-code Snippets, Config and Scripts for Using PrusaSlicer (Slic3r) with the Flashforge Creator Pro
 
+[See my website](https://www.dr-lex.be/info-stuff/print3d-ffcp.html#slice_config) for main instructions on installing and using these files.
+
 This repository contains three things:
 
 ## G-code snippets
