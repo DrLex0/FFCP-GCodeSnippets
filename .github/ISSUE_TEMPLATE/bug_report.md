@@ -20,5 +20,5 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 
-Please attach the project file (3MF) that demonstrates the problem and if possible, a ZIP with both the final .gcode and .x3g files.
+By far the most useful thing you can provide, is the PrusaSlicer project file (3MF) that demonstrates the problem: use “Save Project” in the File menu. If possible, also include both the final .gcode and .x3g files. You can package everything into one ZIP file.
 * If specific steps are required to reproduce the behavior, list them here.
