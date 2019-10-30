@@ -28,7 +28,7 @@
 # the case if you use Microsoft's WSL images inside Windows 10 version 1803 or
 # newer. In other cases you need to provide your own `wslpath` script.
 #
-# Version: 20190916
+# Version: 20191030
 # Alexander Thomas a.k.a. DrLex, https://www.dr-lex.be/
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
@@ -98,9 +98,8 @@ DEBUG=0
 # change options from their defaults, like --allow_split or --zmax.
 #PWM_OPTS='--allow_split'
 
-# Path to the experimental retraction improver script.
-# (Note: you probably don't have this script because I haven't released it yet,
-# and I'm not sure if I ever will because it is a hideous hack).
+# Path to the (experimental) retraction improver script.
+# It also fixes the under-extrusion when starting to print the skirt.
 #RETRACT_SCRIPT=/Users/athomas/bin/retraction-improver.pl
 
 ############ No user serviceable parts below ############

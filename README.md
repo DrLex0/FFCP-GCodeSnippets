@@ -2,7 +2,7 @@
 
 [See my website](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#config) for main instructions on installing and using these files.
 
-This repository contains three things:
+This repository contains four things:
 
 ## G-code snippets
 To be used in combination with my PrusaSlicer profiles as can be found on Thingiverse ([Thing:2367215](https://www.thingiverse.com/thing:2367215)). These snippets are also published separately in [Thing:2367350](https://www.thingiverse.com/thing:2367350) for convenience. Look on those Thing pages for instructions.
@@ -12,8 +12,11 @@ The actual configuration bundles that can be imported into PrusaSlicer. Given th
 
 These configs and G-code are made specifically for PrusaSlicer. They might work in the original Slic3r from which PrusaSlicer was forked, but I give no guarantees.
 
+## Optional post-processing scripts
+See the *Postprocessing-scripts* directory for more info.
+
 ## The *make_fcp_x3g* script
-This script can be configured as a post-processing script in PrusaSlicer to run specific post-processing scripts and finally generate an X3G file by invoking [GPX](https://github.com/markwal/GPX).
+This script can be configured as a post-processing script in PrusaSlicer. Its main task is to generate a printable X3G file by invoking [GPX](https://github.com/markwal/GPX). It can also invoke certain other post-processing scripts and apply a workaround for certain bugs in PrusaSlicer.
 
 This is a Bash script that will work in Linux and Mac OS X. It can also be used with the WSL Linux environment in recent versions of **Windows.** To do this: create a BAT file, named for instance `slic3r_postprocess.bat`, that contains the following:
 ```
