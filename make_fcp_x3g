@@ -43,7 +43,7 @@ GPX=/usr/local/bin/gpx
 # Run `gpx -?` and look at the 'MACHINE' section. If it lists 'fcp' as one of
 # the allowed values, it is preferable to use that value here. Otherwise, use
 # 'r1d' instead, or something custom if you know what you're doing.
-MACHINE=fcp
+MACHINE=r1d
 
 # The absolutely highest Z value allowed by your printer. This both acts as a
 # sanity check and will also update the final Z move in the end G-code when
