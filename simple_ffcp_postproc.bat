@@ -13,9 +13,9 @@ if %errorlevel% equ 1 goto rungpx
 :: Apply the workaround for Slic3r's assumption that any single-extruder printer profile uses T0 only.
 :: This assumes that any version of Slic3r will keep on printing the M104 command in exactly the same format.
 :: ADJUST PERL PATH HERE:
-C:\cygwin64\bin\perl.exe -pi -e 's/^M104 S(\S+) (T.*); set temperature/M104 S$1 ; POSTPROCESS FIX: $2 ARGUMENT REMOVED/' %fpath%
-:: In Windows, Perl cannot do in-place editing without making a backup file, so delete it.
-del %fpath%.bak
+C:\cygwin64\bin\perl.exe -pi -e "s/^M104 S(\S+) (T.*); set temperature/M104 S$1 ; POSTPROCESS FIX: $2 ARGUMENT REMOVED/" %fpath%
+:: Some editions of Perl in Windows cannot do in-place editing without making a backup file, so delete if there is one.
+if exist %fpath%.bak del %fpath%.bak
 
 :rungpx
 :: ADJUST GPX PATH HERE: (or comment out this line if you want to run gpx manually)
