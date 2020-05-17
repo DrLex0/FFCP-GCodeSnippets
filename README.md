@@ -29,11 +29,11 @@ The script applies some workarounds for a certain bug in PrusaSlicer, and then i
 
 You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip this and move to step 2, but I recommend you don't.
 
-To automatically invoke GPX, you must first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment.
+To automatically invoke GPX, you must first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In OS X, gpx can be installed through [homebrew](https://brew.sh/). Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment (quite likely, running “`sudo apt install gpx`” in a Linux terminal will do the job).
 
 As for the post-processing script itself, your options are:
 
-1. **You are running Linux or Mac OS X:** you need the `make_fcp_x3g` Bash script. Open the script in an editor and edit at least the `GPX` path to point to where the gpx binary resides. Optionally edit the other values, following the instructions in the file's comments. When done, ensure the file is executable (`chmod a+x make_fcp_x3g`) and remember the full path to where you placed it. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. You can now move to *step 2.*
+1. **You are running Linux or Mac OS X:** you need the `make_fcp_x3g` Bash script. Open the script in an editor and edit at least the `GPX` path to point to where the gpx binary resides (try “`which gpx`” in a terminal if you don't know this path). Optionally edit the other values, following the instructions in the file's comments. When done, ensure the file is executable (`chmod a+x make_fcp_x3g`) and remember the full path to where you placed it. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. You can now move to *step 2.*
 2. **You are running WSL inside Windows:** you need the `make_fcp_x3g` Bash script, but also a BAT wrapper script to invoke it from within Windows. Follow the *WSL instructions* subsection below.
 3. **You are running Windows but have no WSL:** you need the `simple_ffcp_postproc.bat` script. Follow the *Fallback BAT script* instructions below. This BAT script only does the bare minimum to use PrusaSlicer with the FFCP, it is much recommended to use `make_fcp_x3g` instead if you can.
 
@@ -43,7 +43,8 @@ If it isn't obvious: setting up PrusaSlicer is much easier on Linux or OS X. If
 
 For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file `poor_mans_wslpath.txt`.
 
-Open the `make_fcp_x3g` script in a text editor and set “`GPX`” to the *Linux file path* pointing to the *Linux gpx binary* you installed before. You could optionally edit the other parameters if you know what you're doing. Then save this modified script inside the Linux filesystem. Ensure both the script and gpx binary are executable (`chmod a+x make_fcp_x3g`).
+Open the `make_fcp_x3g` script in a text editor and set “`GPX`” to the *Linux file path* pointing to the *Linux gpx binary* you installed before. To know its path, you can execute “`which gpx`” in a Linux terminal. If this does not return anything, GPX is not (correctly) installed.\
+You could optionally edit the other parameters of this script if you know what you're doing. Then save this modified script inside the Linux filesystem. Ensure both the script and gpx binary are executable (`chmod a+x make_fcp_x3g`).
 
 Then, create a BAT wrapper script, any text editor will do. Save the following content under the file name `slic3r_postprocess.bat`:
 ```
@@ -54,7 +55,7 @@ bash /your/linux/path/to/make_fcp_x3g -w '%fpath%'
 
 In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the *make_fcp_x3g* script.
 
-Now remember the full path to the `slic3r_postprocess.bat` file, you will need it in the next step. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then its full path is: “`C:\Users\Foobar\Documents\slic3r_postprocess.bat`”. Now you can move to *step 2.*
+Now remember the full Windows path to the `slic3r_postprocess.bat` file, you will need it in the next step. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then its full path is: “`C:\Users\Foobar\Documents\slic3r_postprocess.bat`”. Now you can move to *step 2.*
 
 ### Fallback BAT script
 
