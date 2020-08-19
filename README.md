@@ -75,7 +75,7 @@ There are two variations on the config bundle: most likely you will need the reg
 
 Open the appropriate .ini file in a text editor and do a find & replace on all occurrences of the following line, or use `sed` if you are a Linux/UNIX wizard:
 ```
-post_process = /You-need-to-update-print-configs/see-https://bit.ly/2MsxdV2
+post_process = /You-need-to-update-print-configs/see-https://bit.ly/3l13MrN
 ```
 Replace all these lines with:
 ```
