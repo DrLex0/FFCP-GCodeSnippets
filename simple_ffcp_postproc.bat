@@ -18,5 +18,5 @@ C:\cygwin64\bin\perl.exe -pi -e "s/^M104 S(\S+) (T.*); set temperature/M104 S$1 
 if exist %fpath%.bak del %fpath%.bak
 
 :rungpx
-:: ADJUST GPX PATH HERE: (or comment out this line if you want to run gpx manually)
+:: ADJUST GPX PATH HERE, or comment out/remove the following line if you are using OctoPrint or want to run gpx manually:
 C:\Where\you\installed\gpx.exe -m r1d %fpath%

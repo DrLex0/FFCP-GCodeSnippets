@@ -33,7 +33,11 @@
 # Thanks to lscotte (https://gitlab.com/lscotte) for help with the WSL stuff
 # Released under Creative Commons Attribution 4.0 International license.
 
-#### Modify the following values to match your setup: ####
+
+### CONFIGURATION STARTS HERE. ############################################
+### Modify the following values to match your set-up.
+### "Commenting out" a line means prepending it with a hash mark #.
+### Similarly, enabling a line is done by removing any leading hash mark.
 
 # Path to the gpx binary. Try `which gpx` if you're not sure what is the
 # correct path. To disable conversion to X3G (and leave it up to e.g.
