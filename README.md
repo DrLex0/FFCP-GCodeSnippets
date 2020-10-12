@@ -100,7 +100,7 @@ Now would be a good time to [return to the main article](https://www.dr-lex.be/s
 
 ## For the perfectionists
 
-You should calibrate your home offsets to be able to use the entire surface of the print bed. In a nutshell, make sure that the initial priming extrusion is at exactly 3 mm of the front edge of the bed. For more details, [see my FFCP hints webpage](https://www.dr-lex.be/info-stuff/print3d-ffcp.html#hint_calib).
+You should calibrate your home offsets to be able to use the entire surface of the print bed. In a nutshell, make sure that the initial priming extrusion is at exactly 3 mm of the front edge of the bed. For more details, [see my FFCP hints webpage](https://www.dr-lex.be/3d-printing/print3d-ffcp.html#hint_calib).
 
 
 
