@@ -1,15 +1,15 @@
-# G-code Snippets, Config and Scripts for Using PrusaSlicer (Slic3r) with the Flashforge Creator Pro
+# G-code Snippets, Config and Scripts for Using PrusaSlicer (formerly Slic3r) with the Flashforge Creator Pro
 
 This is a set of configuration bundles and post-processing scripts that allow to use the FlashForge Creator Pro 3D printer and compatible clones with PrusaSlicer. [On my website](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) I explain why you should use these files, and how to use PrusaSlicer after installing them. This repository contains the actual software and installation instructions. If you didn't come from that page already, [read the webpage itself](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) for the full story, it will link back here at the appropriate moment.
 
-These configs and G-code are made specifically for *PrusaSlicer.* They might work in the original Slic3r from which PrusaSlicer was forked, but I give no guarantees.
+These configs and G-code are made specifically for *PrusaSlicer.* They might work in the original Slic3r from which PrusaSlicer was forked, but I give no guarantees, and I give no support if you use this with anything else than PrusaSlicer.
 
 This repository contains four things:
 
-1. **Slic3r-configBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
+1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
 2. **`make_fcp_x3g`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. For users of old Windows versions there is a simplified BAT file that mimics the minimal required functionality of `make_fcp_x3g`. You can make do without this script, but it can make your life a lot easier.
 3. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
-4. **Slic3r-GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this *Slic3r-GCode* folder than inside the **Slic3r-configBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
+4. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
 
 
 ## A warning in advance
@@ -29,7 +29,8 @@ Either of these two scripts applies an important workaround for a certain bug in
 
 You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip this and move to step 2, but I recommend you don't.
 
-If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In OS X, gpx can be installed through [homebrew](https://brew.sh/). Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment (quite likely, running “`sudo apt install gpx`” in a Linux terminal will do the job).
+If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In OS X, gpx can be installed through [homebrew](https://brew.sh/).\
+Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
 
