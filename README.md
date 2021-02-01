@@ -34,7 +34,7 @@ Important: if you are going to use the WSL Linux environment in Windows, do not 
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
 
-1. **You are running Linux or Mac OS X:** you need the `make_fcp_x3g` Bash script. Open the script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g`) and remember the full path to where you placed it. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. You can now move to *step 2.*
+1. **You are running Linux or Mac OS X:** you need the `make_fcp_x3g` Bash script. Open the script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window. You can now move to *step 2.*
 2. **You are running WSL inside Windows:** you need the `make_fcp_x3g` Bash script, but also a BAT wrapper script to invoke it from within Windows. Follow the *WSL instructions* subsection below.
 3. **You are running Windows but have no WSL:** you need the `simple_ffcp_postproc.bat` script. Follow the *Fallback BAT script* instructions below. This BAT script only does the bare minimum to use PrusaSlicer with the FFCP, it is much recommended to use `make_fcp_x3g` instead if you can.
 
@@ -57,7 +57,7 @@ bash /your/linux/path/to/make_fcp_x3g -w '%fpath%'
 
 In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the *make_fcp_x3g* script.
 
-Now remember the full Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then its full path is: “`C:\Users\Foobar\Documents\slic3r_postprocess.bat`”. Now you can move to *step 2.*
+Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is: “`C:\Users\Foobar\Documents\slic3r_postprocess.bat`”. Now you can move to *step 2.*
 
 ### Fallback BAT script
 
@@ -68,12 +68,14 @@ Only needed if you cannot get WSL working in Windows. The `simple_ffcp_postproc.
 3. Figure out what the full path to `perl.exe` is, and enter this path in the script under the comment line “`ADJUST PERL PATH HERE`”. Depending on your installation, perhaps just 'perl' may work, otherwise use the full path (the default in the script is for 64-bit cygwin).
 4. Figure out the full path where gpx.exe was installed. Enter this path in the script under the comment line “`ADJUST GPX PATH HERE`”.
 
-Now remember the full path to this BAT file, you will need it in the next step. For instance if your Windows account name is *Foobar* and you placed the file `simple_ffcp_postproc.bat` in your documents folder on your C drive, then its full path is: “`C:\Users\Foobar\Documents\simple_ffcp_postproc.bat`”. Now you can move to *step 2.*
+Now remember the full absolute path to this BAT file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `simple_ffcp_postproc.bat` in your documents folder on your C drive, then `PATH` is: “`C:\Users\Foobar\Documents\simple_ffcp_postproc.bat`”. Now you can move to *step 2.*
 
 
 ## Step 2: modify the config bundles
 
 There are two variations on the config bundle: most likely you will need the regular one. The other one (with ‘MVF’ in its name) is only to be used if you have upgraded your printer with the [MightyVariableFan system](https://github.com/DrLex0/MightyVariableFan).
+
+The .ini file is only temporary. It will be loaded into PrusaSlicer in the next step, after this you can discard the file.
 
 Open the appropriate .ini file in a text editor and do a find & replace on all occurrences of the following line, or use `sed` if you are a Linux/UNIX wizard:
 ```
@@ -83,10 +85,10 @@ Replace all these lines with:
 ```
 post_process = PATH
 ```
-Where `PATH` is either:
-* the UNIX-style path to the `make_fcp_x3g` script if you are running PrusaSlicer in Linux or Mac OS X;
-* the Windows-style path to `slic3r_postprocess.bat` if you run `make_fcp_x3g` inside WSL inside Windows;
-* the Windows-style path to `simple_ffcp_postproc.bat` if you deployed this inside Windows instead;
+Where you substitute `PATH` with one of the following, as described in the previous steps:
+* the absolute UNIX-style path to the `make_fcp_x3g` script if you are running PrusaSlicer in Linux or Mac OS X;
+* the absolute Windows-style path to `slic3r_postprocess.bat` if you run `make_fcp_x3g` inside WSL inside Windows;
+* the absolute Windows-style path to `simple_ffcp_postproc.bat` if you deployed this inside Windows instead;
 * nothing, empty, if you opted to skip step 1 (the line would then be “`post_process = `”). Again, not recommended.
 
 
