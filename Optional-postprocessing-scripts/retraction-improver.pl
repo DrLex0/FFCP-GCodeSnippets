@@ -49,8 +49,11 @@
 
 use strict;
 use warnings;
+use File::Basename;
+use Getopt::Std;
 
-###### Configuration ######
+
+#### Configurable options ####
 
 # Initial unretract compensation hack: squirt out this much extra filament when unretracting for
 # the first time after the start G-code. I have NO idea why this is necessary but without it, the
@@ -85,45 +88,51 @@ my $maxTools = 2;
 
 
 ###### No user serviceable parts below ######
-my $version = '0.7';
+our $VERSION = '0.8';
 
-sub usage
+sub HELP_MESSAGE
 {
-	print "Usage: $0 [-hds] inputFile > output\n"
-	     ."Retraction-improver version ${version}\n"
-	     ."  -h: usage information\n"
-	     ."  -d: debug mode (extra spam on stderr)\n"
-	     ."  -s: stats mode: print statistics on stderr\n"
-	     ."  Never use the same file for both inputFile and output!\n";
+	my $prog = basename($0);
+	print <<__END__;
+Usage: ${prog} [-hds] inputFile > output
+   or: ${prog} [-hds] -o output inputFile
+Retraction-improver version ${VERSION}
+Options:
+  -h: show usage information and exit
+  -d: debug mode (extra spam on stderr)
+  -s: stats mode: print statistics on stderr
+  -o FILE: write to FILE instead of stdout.
+Never use the same file for both inputFile and output!
+__END__
 }
 
 
+###### MAIN ######
 my ($DEBUG, $INFO, $WARNING, $ERROR, $FATAL) = (10, 20, 30, 40, 50);
 my %logLevelNames = (10 => 'DEBUG', 20 => 'INFO', 30 => 'WARNING', 40 => 'ERROR', 50 => 'FATAL');
 
 my $logLevel = $INFO;
-my $statsMode = 0;
 
-while($#ARGV >= 0 && $ARGV[0] =~ /^-(\S+)/) {
-	my @args = split('', $1);
-	foreach my $arg (@args) {
-		if($arg eq 'h') {
-			usage();
-			exit;
-		} elsif($arg eq 'd') {
-			$logLevel = $DEBUG;
-			logMsg($DEBUG, 'Debug output enabled, prepare to be spammed');
-		} elsif($arg eq 's') {
-			$statsMode = 1;
-		} else {
-			logMsg($WARNING, "ignoring unknown switch '${arg}'");
-		}
-	}
-	shift;
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
+my %opts;
+exit 2 if(! getopts('hdso:', \%opts));
+
+if($opts{'h'}) {
+	HELP_MESSAGE();
+	exit;
 }
+if($opts{'d'}) {
+	$logLevel = $DEBUG;
+	logMsg($DEBUG, 'Debug output enabled, prepare to be spammed');
+}
+my $statsMode = $opts{'s'};
 
 my $inFile = shift;
 seppuku(2, 'No input file specified') if(!$inFile);
+if(defined $opts{'o'} && $opts{'o'} ne '') {
+	die "ERROR: output file cannot be the same as input file\n" if($opts{'o'} eq $inFile);
+}
+
 if($thresholdSlope * $flatness == 0) {
 	seppuku(2, 'Both thresholdSlope and flatness parameters must be greater than 0');
 }
@@ -362,7 +371,7 @@ close($fHandle);
 
 if($modified) {
 	# Add some statistics to the file
-	my @info = ("; Post-processed by DrLex retraction improver script v${version}. Threshold=${distanceThreshold}, slope_th=${thresholdSlope}, flatness=${flatness}");
+	my @info = ("; Post-processed by DrLex retraction improver script v${VERSION}. Threshold=${distanceThreshold}, slope_th=${thresholdSlope}, flatness=${flatness}");
 	push(@info, sprintf(';   Total distance in travel moves: %.5fmm', $totalTravel));
 	for(my $i=0; $i<=$#offsetE; $i++) {
 		if($offsetE[$i]) {
@@ -383,8 +392,17 @@ if($modified) {
 		push(@output, @info);
 	}
 }
-print join("\n", @output);
+
+my $outHandle = \*STDOUT;
+my $outFileHandle;
+if(defined $opts{'o'} && $opts{'o'} ne '') {
+	open($outFileHandle, '>', $opts{'o'}) or die "ERROR: cannot write to '$opts{o}': $!\n";
+	$outHandle = $outFileHandle;
+}
+
+print $outHandle join("\n", @output);
 logMsg($INFO, sprintf('Total distance in travel moves: %.5fmm', $totalTravel)) if($statsMode);
+close($outFileHandle) if($outFileHandle);
 
 
 ###### SUBROUTINES ######
