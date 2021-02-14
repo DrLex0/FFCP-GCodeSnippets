@@ -146,13 +146,13 @@ my $MACHINE = 'r1d';
 
 ############ No user serviceable parts below ############
 
-our $VERSION = '20210211';
+our $VERSION = '20210214';
 
 sub HELP_MESSAGE
 {
 	my $prog = basename($0);
 	print <<__END__;
-${prog} [-dwPpkv] input.gcode   or:   ${prog} -c
+${prog} [-dwPpkv] [-s S] input.gcode   or:   ${prog} -c
 Processes G-code file for the FFCP with GPX, after optionally applying certain fixes.
 Output will be written to a file with the same name and .x3g extension.
 Options:
@@ -166,6 +166,7 @@ Options:
   -P: disables all postprocessing and only runs GPX without -p option.
   -p: enable -p option of GPX even if -P is used.
   -k: keep copy of original file.
+  -s S: pause S seconds when exiting, useful for troubleshooting in Windows.
   -v: verbose output.
 __END__
 }
@@ -173,7 +174,7 @@ __END__
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %opts;
-exit 2 if(! getopts('hcdwPpkv', \%opts));
+exit 2 if(! getopts('hcdwPpks:v', \%opts));
 
 if($opts{'h'}) {
 	HELP_MESSAGE();
@@ -183,9 +184,18 @@ my $sanity = $opts{'c'};
 my $wsl = $opts{'w'};
 my $no_postproc = $opts{'P'};
 my $force_progress = $opts{'p'};
+my $exit_sleep = $opts{'s'};
 my $verbose = $opts{'v'};
 $KEEP_ORIG = 1 if($opts{'k'});
 $DEBUG = 1 if($opts{'d'});
+
+if(defined $exit_sleep && $exit_sleep !~ /^\d?\.?\d+$/) {
+	print STDERR "ERROR: argument following -s must be a positive number\n";
+	# Since someone is probably trying to add the -s argument to catch an
+	# error briefly flashing, sleep with a default to show this error.
+	$exit_sleep = 3;
+	do_exit(2);
+}
 
 if($EXTRA_PATH) {
 	if($^O =~ /^MSWin/) {
@@ -208,7 +218,7 @@ my $inputfile = shift;
 if(! defined $inputfile || $inputfile eq '') {
 	print STDERR "ERROR: argument should be the path to a .gcode file\n";
 	HELP_MESSAGE();
-	exit 2;
+	do_exit(2);
 }
 
 if($wsl) {
@@ -217,8 +227,7 @@ if($wsl) {
 	my $in_esc = shellEscape($inputfile);
 	$inputfile = qx(wslpath -a ${in_esc});
 	if($? || ! defined $inputfile || $inputfile eq '') {
-		print STDERR "Error: 'wslpath' command not found or failed\n";
-		exit 3
+		seppuku("FATAL: 'wslpath' command not found or failed\n");
 	}
 	print "Converted Windows path to WSL path: '${inputfile}'\n";
 }
@@ -227,14 +236,14 @@ my ($i_handle, $o_handle);
 
 if($DEBUG) {
 	my $check_out = File::Spec->catfile(dirname($inputfile), 'make_fcp_x3g_check.txt');
-	open($o_handle, '>', $check_out) or die "FATAL: cannot write to '${check_out}': $!\n";
+	open($o_handle, '>', $check_out) or seppuku("FATAL: cannot write to '${check_out}': $!\n");
 	sanity_check($o_handle);
 	close($o_handle);
 }
 
 if(! -r $inputfile) {
 	print STDERR "ERROR: input file not found or not readable: ${inputfile}\n";
-	exit 1;
+	do_exit(2);
 }
 
 (my $stripped = $inputfile) =~ s/\.[^.]+$//;
@@ -259,7 +268,7 @@ if(! $no_postproc) {
 	adjust_final_z() if($FINAL_Z_MOVE);
 
 	my ($dualstrude, $left_right, $m104_seen, $m83_seen, $fix_m104);
-	open($i_handle, '<', $inputfile) or die "FATAL: cannot read from ${inputfile}: $!\n";
+	open($i_handle, '<', $inputfile) or seppuku("FATAL: cannot read from ${inputfile}: $!\n");
 	my $i = 0;
 	foreach my $line (<$i_handle>) {
 		$dualstrude = 1 if(! $dualstrude && $line =~ /^;- - - Custom G-code for dual extruder printing/);
@@ -286,7 +295,7 @@ if(! $no_postproc) {
 		print "Ensuring correct display in gcode.ws\n" if($m83_seen);
 		my $tmpname;
 		($o_handle, $tmpname) = tempfile();
-		open($i_handle, '<', $inputfile) or die "FATAL: cannot read from ${inputfile}: $!\n";
+		open($i_handle, '<', $inputfile) or seppuku("FATAL: cannot read from ${inputfile}: $!\n");
 		foreach my $line (<$i_handle>) {
 			# I am entirely relying here on the assumption that any Slic3r version
 			# will keep on printing the code with a comment exactly like this.
@@ -323,8 +332,28 @@ if(which($GPX) || (-x $GPX && -f $GPX)) {
 	print $gpx_out if($verbose && $gpx_out);
 }
 
+do_exit(0);
+
 
 #### SUBROUTINES ####
+
+sub seppuku
+# Exit with error message, similar to die but with pause if configured.
+{
+	my $err = $!;
+	$err = $? >> 8 if(! $err && $? >> 8);
+	$err = 255 if(! $err);
+	print STDERR @_;
+	sleep($exit_sleep) if($exit_sleep);
+	exit $err;
+}
+
+sub do_exit
+# Exit without error message, with pause if configured.
+{
+	sleep($exit_sleep) if($exit_sleep);
+	exit @_;
+}
 
 sub shellEscape
 # Turns a file path argument into a double-quoted string that should be safe
@@ -350,7 +379,7 @@ sub append_warning {
 	my $msg = shift;
 
 	print "Appending warnings:\n${msg}\n" if($verbose);
-	open(my $fh, '>>', $warn_file) or die "FATAL: cannot write to ${warn_file}: $!\n";
+	open(my $fh, '>>', $warn_file) or seppuku("FATAL: cannot write to ${warn_file}: $!\n");
 	print $fh "${msg}\n";
 	close($fh);
 }
@@ -359,8 +388,8 @@ sub copy_file
 {
 	my ($in_kind, $in_path, $out_path) = @_;
 
-	open(my $i_handle, '<', $in_path) or die "FATAL: failed to read ${in_kind} file '${in_path}': $!\n";
-	open(my $o_handle, '>', $out_path) or die "FATAL: failed to write to file '${out_path}': $!\n";
+	open(my $i_handle, '<', $in_path) or seppuku("FATAL: failed to read ${in_kind} file '${in_path}': $!\n");
+	open(my $o_handle, '>', $out_path) or seppuku("FATAL: failed to write to file '${out_path}': $!\n");
 	my $chunk;
 	my $chars = 0;
 	do {
@@ -512,11 +541,11 @@ sub run_script
 	my $warnings = qx(${cmd} -o ${tmpname_esc} ${gcode_esc} 2>&1);
 	if($?) {
 		$warnings = "The ${name} script failed ($?), but without any output.\n" if(! $warnings);
-		open($o_handle, '>>', $fail_file) or die "FATAL: failed to write to '${fail_file}'\n";
+		open($o_handle, '>>', $fail_file) or seppuku("FATAL: failed to write to '${fail_file}'\n");
 		print $o_handle $warnings;
 		close($o_handle);
 		print STDERR "FATAL: running ${name} script failed, aborting postprocessing.\n";
-		exit 1;
+		do_exit(1);
 	}
 	# Instead of using File::Copy, just read and write the data so we don't
 	# need to care about permissions of the tempfile.
@@ -532,7 +561,7 @@ sub adjust_final_z
 # FINAL_Z_MOVE, it updates that line to prevent the move from ramming the
 # nozzle into the print.
 {
-	open(my $f_handle, '+<', $inputfile) or die "FATAL: cannot open '${inputfile}' for reading+writing.\n";
+	open(my $f_handle, '+<', $inputfile) or seppuku("FATAL: cannot open '${inputfile}' for reading+writing.\n");
 	my @lines;
 	my $chunk;
 	my $chunk_size = 16384;

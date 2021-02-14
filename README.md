@@ -25,7 +25,7 @@ If you have a question, please go through both [the companion webpage](https://w
 
 ## Step 1: install the `make_fcp_x3g.pl` script
 
-This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-Code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
+This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
 
 You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you don't.
 
@@ -59,10 +59,7 @@ set fpath=%fpath:'='"'"'%
 bash -c "perl '/your/linux/path/to/make_fcp_x3g.pl' -w '%fpath%'"
 ```
 
-In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the `make_fcp_x3g.pl` script. Avoid having spaces, quotes, or other characters in this path (unless you like to be in a world of pain).
-
-If you have any problems with this script, it may help to append an extra line to keep the console window open for a while so you can see error messages:\
-`timeout /t 10`
+In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the `make_fcp_x3g.pl` script. Avoid having spaces, quotes, or other non-terminal-friendly characters in this path (unless you like to be in a world of pain).
 
 Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is: `"C:\Users\Foobar\Documents\slic3r_postprocess.bat"`.\
 Now you can move to *step 2.*
@@ -85,7 +82,7 @@ post_process = PATH
 Where you substitute `PATH` with one of the following, as described in the previous steps:
 * if you are running PrusaSlicer in Linux or Mac OS X: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
 * if you use a Perl interpreter in Windows: the absolute Windows-style paths to both `perl.exe` and the `make_fcp_x3g.pl` script, both between double quotes and with a space in between;
-* if you run `make_fcp_x3g.pl` inside WSL inside Windows: the absolute Windows-style path to `slic3r_postprocess.bat`;
+* if you run `make_fcp_x3g.pl` inside WSL: the absolute Windows-style path to `slic3r_postprocess.bat`;
 * if you opted to skip step 1: nothing, empty. The line would then be “`post_process = `”. Again, not recommended.
 
 
@@ -98,9 +95,20 @@ Now import the .ini file you edited before. PrusaSlicer will overwrite existing 
 Now would be a good time to [return to the main article](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#using) to read how to use PrusaSlicer with this config bundle.
 
 
+## Troubleshooting
+
+If the `make_fcp_x3g.pl` script does not seem to work or produce correct output, the first thing you should try is to manually invoke it with the `-c` parameter to run a ‘sanity check’. If this does not show obvious problems, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done by either adding a `-d` parameter to the invocation of `make_fcp_x3g.pl` in PS itself or in the BAT file, or setting `$DEBUG` to 1 in the script. This will create a file ‘`make_fcp_x3g_check.txt`’ with the same kind of report as `-c`. If this file is not even being created, then the problem happens even before the script is being called.
+
+In Windows, the script is run inside a command window but this window is closed immediately regardless of success or failure. To catch any warnings or error messages, you can cause the window to stay open for a while. For instance to keep it open for 10 seconds, add “`-s 10`” to the invocation of the `make_fcp_x3g.pl` script, or if you are using WSL, add this extra line to the BAT file:
+```
+timeout /t 10
+```
+The Mac OS version of PrusaSlicer doesn't show this kind of output window and I'm not sure whether the Linux version does, so in those cases you have to resort to the `-c` and `-d` options, or start PrusaSlicer from a terminal to see all of its output.
+
+
 ## For the perfectionists
 
-You should calibrate your home offsets to be able to use the entire surface of the print bed. In a nutshell, make sure that the initial priming extrusion is at exactly 3 mm of the front edge of the bed. For more details, [see my FFCP hints webpage](https://www.dr-lex.be/3d-printing/print3d-ffcp.html#hint_calib).
+You should calibrate your home offsets to be able to use the entire surface of the print bed. In a nutshell, make sure that the initial priming extrusion is at exactly 3 mm of the front edge of the bed. It is also possible that you can print taller objects than the theoretical 150 mm limit. For more details, [see my FFCP hints webpage](https://www.dr-lex.be/3d-printing/print3d-ffcp.html#hint_calib).
 
 
 
