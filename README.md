@@ -21,11 +21,11 @@ You should never exceed 240°C for longer than a few minutes if you have not upg
 
 # Installation and Setup Instructions
 
-If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If something is poorly explained, the best thing you can do is create an issue in the GitHub project itself, or maybe even a pull request.
+If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If you think parts of this README can be improved, the best thing you can do is create an issue in the GitHub project itself, or maybe even a pull request.
 
 ## Step 1: install the `make_fcp_x3g.pl` script
 
-This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
+This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as a *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
 
 You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you don't.
 
@@ -34,13 +34,15 @@ Important: if you are going to use the WSL Linux environment in Windows, do not 
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
 
-1. **You are running Linux or Mac OS X:** open the `make_fcp_x3g.pl` Perl script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window. You can now move to *step 2.*
+1. **You are running Linux or Mac OS X:** open the `make_fcp_x3g.pl` Perl script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. (An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window.)\
+   Try running the script with `-c` argument to see whether you configured it correctly. In Linux, you may need to install the `File::Which` Perl module (Debian or Ubuntu package `libfile-which-perl`).\
+   You can now move to *step 2.*
 2. **You use a Perl interpreter in Windows:** this is the easiest way to use the script in Windows. I recommend [Strawberry Perl](https://strawberryperl.com/). Open the script in an editor (I recommend [Notepad++](https://notepad-plus-plus.org/)), and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, figure out the full paths to both the Perl executable and the script. To obtain what will be referred to as `PATH` below, put the `perl.exe` path between double quotes, followed by a space, then the script path between double quotes. For instance if you installed Strawberry Perl in its default location, then `PATH` would look like:\
    `"C:\Strawberry\perl\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
-   or if you would be using 64-bit cygwin:\
+   or if you would be using 64-bit Cygwin:\
    `"C:\cygwin64\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
    You can now move to *step 2.*
-3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes sense to rely on its Perl interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
+3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes more sense to rely on its Perl interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
 
 The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer.
 
@@ -52,17 +54,29 @@ Open the `make_fcp_x3g.pl` script in a text editor and modify it according to it
 
 When done, save the modified `make_fcp_x3g.pl` inside the Linux filesystem. Ensure both the script and gpx binary (if needed) are executable (`chmod a+x make_fcp_x3g.pl`).
 
-Then, create a BAT wrapper script in your Windows filesystem, any text editor will do. Save the following content under the file name `slic3r_postprocess.bat`:
+You should now run the script with `-c` argument to check whether it works. It is possible you will have to install the `File::Which` Perl module, which can be done in Ubuntu with:
+```
+sudo apt install libfile-which-perl
+```
+
+Now create a BAT wrapper script in your Windows filesystem, any text editor will do. Save the following content under the file name `slic3r_postprocess.bat`:
 ```
 set fpath=%~1
-set fpath=%fpath:'='"'"'%
+set fpath=%fpath:'='$'\'''%
 bash -c "perl '/your/linux/path/to/make_fcp_x3g.pl' -w '%fpath%'"
 ```
 
-In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the `make_fcp_x3g.pl` script. Avoid having spaces, quotes, or other non-terminal-friendly characters in this path (unless you like to be in a world of pain).
+In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path where you placed the `make_fcp_x3g.pl` script inside the Linux environment. Avoid having spaces, quotes, `$`, or other terminal-unfriendly characters in this path unless you know how to deal with them. (Regarding special characters: the cryptic second line in the BAT file makes it safe to use spaces and `'` quotes in G-code file names, but you should still avoid characters like `$`.)
 
-Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is: `"C:\Users\Foobar\Documents\slic3r_postprocess.bat"`.\
+Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is:
+```
+"C:\Users\Foobar\Documents\slic3r_postprocess.bat"
+```
 Now you can move to *step 2.*
+
+### A note about Cygwin
+
+It is possible to make this work with [Cygwin](https://www.cygwin.com/), but since I expect the number of Cygwin users to be rather small, you're pretty much on your own. As with WSL, you need to ensure `File::Which` is installed. The most difficult thing is not to get confused between Windows, UNIX, and cygdrive paths. It is best to specify full paths everywhere.
 
 
 ## Step 2: modify the config bundles
@@ -97,9 +111,9 @@ Now would be a good time to [return to the main article](https://www.dr-lex.be/s
 
 ## Troubleshooting
 
-If the `make_fcp_x3g.pl` script does not seem to work or produce correct output, the first thing you should try is to manually invoke it with the `-c` parameter to run a ‘sanity check’. If this does not show obvious problems, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done by either adding a `-d` parameter to the invocation of `make_fcp_x3g.pl` in PS itself or in the BAT file, or setting `$DEBUG` to 1 in the script. This will create a file ‘`make_fcp_x3g_check.txt`’ with the same kind of report as `-c`. If this file is not even being created, then the problem happens even before the script is being called.
+If the `make_fcp_x3g.pl` script does not seem to work or produce correct output, the first thing you should try is to manually invoke it with the `-c` parameter to run a ‘sanity check’. If this does not show obvious problems, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done by either adding a `-d` parameter to the invocation of `make_fcp_x3g.pl` in PS itself or in the BAT file, or setting `$DEBUG` to 1 in the script. This will create a file ‘`make_fcp_x3g_check.txt`’ containing the same sanity check report. If this file is not even being created, then the problem happens even before the script is being called.
 
-In Windows, the script is run inside a command window but this window is closed immediately regardless of success or failure. To catch any warnings or error messages, you can cause the window to stay open for a while. For instance to keep it open for 10 seconds, add “`-s 10`” to the invocation of the `make_fcp_x3g.pl` script, or if you are using WSL, add this extra line to the BAT file:
+In Windows, the script is run inside a command window but this window is closed immediately regardless of success or failure. To catch any warnings or error messages, you can cause the window to stay open for a while. For instance to keep it open for 10 seconds, add `-s 10` to the invocation of the `make_fcp_x3g.pl` script, or if you are using WSL, add this extra line at the end of the BAT file:
 ```
 timeout /t 10
 ```

@@ -22,7 +22,7 @@
 # a .BAT file containing the following 3 lines, and specify this .BAT file as
 # post-processing script in PrusaSlicer/Slic3r.
 #     set fpath=%~1
-#     set fpath=%fpath:'='"'"'%
+#     set fpath=%fpath:'='$'\'''%
 #     bash -c "perl '/your/linux/path/to/make_fcp_x3g.pl' -w '%fpath%'"
 # For this to work, there must be a command `wslpath` inside your Linux
 # environment that converts Windows paths to their Linux equivalent. This is
@@ -74,7 +74,7 @@ my $GPX = '/usr/local/bin/gpx';
 
 # Set this to 1 to always keep a backup of the unprocessed gcode file,
 # regardless of -k option (useful for debugging).
-my $KEEP_ORIG = 1;  #0;
+my $KEEP_ORIG = 0;
 
 # Set this to 1 to force debug mode (regardless of -d option). This is useful
 # to debug problems when invoking make_fcp_x3g from within PrusaSlicer or
@@ -96,27 +96,28 @@ my $DEBUG = 0;
 # 3. If you're in a UNIX-like environment, perl is in PATH, and the script
 #    file has executable permissions:
 #    ('/path/to/script.pl');
+# Do not use relative paths.
 # Mind that incorrect paths or non-executable script files will be silently
 # ignored at runtime. Use the sanity check (-c) to ensure you did not make
 # any mistakes.
 
 # Dualstrusion post-processing script.
 # See https://github.com/DrLex0/DualstrusionPostproc for more information.
-my @DUALSTRUDE_SCRIPT = ('/Users/athomas/bin/dualstrusion-postproc.pl');
+my @DUALSTRUDE_SCRIPT = ();
 
 # PWM postprocessor script, in case you would be using the MightyVariableFan
 # system, my slightly crazy solution to obtain variable fan speed by having
 # the FFCP communicate with a Raspberry Pi through beep sounds.
 # See https://github.com/DrLex0/MightyVariableFan for more information.
-my @PWM_SCRIPT = ('/Users/athomas/bin/pwm_postprocessor.py');
+my @PWM_SCRIPT = ();
 
 # Extra options to be passed to the PWM_SCRIPT, for instance you may want to
 # change options from their defaults, like --allow_split or --zmax.
-my @PWM_OPTS = ('--allow_split');
+my @PWM_OPTS = ();
 
 # Path to the (experimental) retraction improver script.
 # It also fixes the under-extrusion when starting to print the skirt.
-my @RETRACT_SCRIPT = ('/Users/athomas/bin/retraction-improver.pl');
+my @RETRACT_SCRIPT = ();
 
 
 ##### Advanced options, only change them if you know what you're doing. #####
@@ -132,7 +133,7 @@ my @RETRACT_SCRIPT = ('/Users/athomas/bin/retraction-improver.pl');
 # If you want to get the most out of your machine, do a test to see how deep
 # it can go and adjust Z_MAX accordingly, as well as 'Max print height' in
 # all your printer profiles.
-my $Z_MAX = 170; #150;
+my $Z_MAX = 150;
 
 # For the above to work, this must match the comment string that marks the
 # final Z move in the end G-code.
@@ -224,8 +225,10 @@ if(! defined $inputfile || $inputfile eq '') {
 if($wsl) {
 	# Although the conversion between Windows and Linux paths seems trivial, it
 	# has many quirks so it is better to rely on the dedicated wslpath tool.
+	print "Converting incoming Windows path '${inputfile}' to UNIX path\n" if($verbose);
 	my $in_esc = shellEscape($inputfile);
 	$inputfile = qx(wslpath -a ${in_esc});
+	$inputfile =~ s/\n$// if($inputfile);
 	if($? || ! defined $inputfile || $inputfile eq '') {
 		seppuku("FATAL: 'wslpath' command not found or failed\n");
 	}
@@ -352,7 +355,7 @@ sub do_exit
 # Exit without error message, with pause if configured.
 {
 	sleep($exit_sleep) if($exit_sleep);
-	exit @_;
+	exit shift;
 }
 
 sub shellEscape
