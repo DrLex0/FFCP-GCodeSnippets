@@ -7,7 +7,7 @@ These configs and G-code are made specifically for *PrusaSlicer.* They might wor
 This repository contains four things:
 
 1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
-2. **`make_fcp_x3g`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. For users of old Windows versions there is a simplified BAT file that mimics the minimal required functionality of `make_fcp_x3g`. You can make do without this script, but it can make your life a lot easier.
+2. **`make_fcp_x3g.pl`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. You can make do without this script, but it can make your workflow a lot easier.
 3. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
 4. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
 
@@ -23,52 +23,49 @@ You should never exceed 240°C for longer than a few minutes if you have not upg
 
 If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If something is poorly explained, the best thing you can do is create an issue in the GitHub project itself, or maybe even a pull request.
 
-## Step 1: install either the `make_fcp_x3g` script or the simpler BAT script
+## Step 1: install the `make_fcp_x3g.pl` script
 
-Either of these two scripts applies an important workaround for a certain bug in PrusaSlicer, and then invokes the GPX program for you, to convert the G-Code produced by PrusaSlicer into x3g files that the printer understands. Whatever variant of the script you will be using, it will be configured as *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
+This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-Code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
 
-You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip this and move to step 2, but I recommend you don't.
+You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you don't.
 
-If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In OS X, gpx can be installed through [homebrew](https://brew.sh/).\
+If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In Mac OS X, gpx can be installed through [homebrew](https://brew.sh/).\
 Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
 
-1. **You are running Linux or Mac OS X:** you need the `make_fcp_x3g` Bash script. Open the script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window. You can now move to *step 2.*
-2. **You are running WSL inside Windows:** you need the `make_fcp_x3g` Bash script, but also a BAT wrapper script to invoke it from within Windows. Follow the *WSL instructions* subsection below.
-3. **You are running Windows but have no WSL:** you need the `simple_ffcp_postproc.bat` script. Follow the *Fallback BAT script* instructions below. This BAT script only does the bare minimum to use PrusaSlicer with the FFCP, it is much recommended to use `make_fcp_x3g` instead if you can.
+1. **You are running Linux or Mac OS X:** open the `make_fcp_x3g.pl` Perl script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window. You can now move to *step 2.*
+2. **You use a Perl interpreter in Windows:** this is the easiest way to use the script in Windows. I recommend [Strawberry Perl](https://strawberryperl.com/). Open the script in an editor (I recommend [Notepad++](https://notepad-plus-plus.org/)), and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, figure out the full paths to both the Perl executable and the script. To obtain what will be referred to as `PATH` below, put the `perl.exe` path between double quotes, followed by a space, then the script path between double quotes. For instance if you installed Strawberry Perl in its default location, then `PATH` would look like:\
+   `"C:\Strawberry\perl\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
+   or if you would be using 64-bit cygwin:\
+   `"C:\cygwin64\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
+   You can now move to *step 2.*
+3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes sense to rely on its Perl interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
 
-If it isn't obvious: setting up PrusaSlicer is much easier on Linux or OS X. If you have the choice between either these platforms or Windows, do yourself a favour and pick the first.
+The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer.
 
 ### WSL instructions
 
 For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file `poor_mans_wslpath.txt`.
 
-Open the `make_fcp_x3g` script in a text editor and modify it according to its instructions until you hit the “`No user serviceable parts`” line. Important: each time you need to specify the path to a program or script, specify the *Linux file path* where you placed that program (e.g. gpx) or script inside the WSL Linux environment.
+Open the `make_fcp_x3g.pl` script in a text editor and modify it according to its instructions until you hit the “`No user serviceable parts`” line. Important: each time you need to specify the path to a program or script, specify the *Linux file path* where you placed that program (e.g. gpx) or script inside the WSL Linux environment.
 
-When done, save the modified `make_fcp_x3g` inside the Linux filesystem. Ensure both the script and gpx binary (if needed) are executable (`chmod a+x make_fcp_x3g`).
+When done, save the modified `make_fcp_x3g.pl` inside the Linux filesystem. Ensure both the script and gpx binary (if needed) are executable (`chmod a+x make_fcp_x3g.pl`).
 
 Then, create a BAT wrapper script in your Windows filesystem, any text editor will do. Save the following content under the file name `slic3r_postprocess.bat`:
 ```
 set fpath=%~1
 set fpath=%fpath:'='"'"'%
-bash /your/linux/path/to/make_fcp_x3g -w '%fpath%'
+bash -c "perl '/your/linux/path/to/make_fcp_x3g.pl' -w '%fpath%'"
 ```
 
-In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the *make_fcp_x3g* script.
+In the above lines, replace “`/your/linux/path/to`” with the full UNIX style path inside the Linux environment where you placed the `make_fcp_x3g.pl` script. Avoid having spaces, quotes, or other characters in this path (unless you like to be in a world of pain).
 
-Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is: “`C:\Users\Foobar\Documents\slic3r_postprocess.bat`”. Now you can move to *step 2.*
+If you have any problems with this script, it may help to append an extra line to keep the console window open for a while so you can see error messages:\
+`timeout /t 10`
 
-### Fallback BAT script
-
-Only needed if you cannot get WSL working in Windows. The `simple_ffcp_postproc.bat` script only mimics the two most essential functions of the `make_fcp_x3g` script, namely the tool temperature bug workaround and invoking GPX. It requires Windows binaries of both **Perl** and (unless you're using Octoprint) **GPX**.
-
-1. Install Perl, e.g. through Strawberry Perl or Cygwin.
-2. Open the `simple_ffcp_postproc.bat` script file in a text editor.
-3. Figure out what the full path to `perl.exe` is, and enter this path in the script under the comment line “`ADJUST PERL PATH HERE`”. Depending on your installation, perhaps just 'perl' may work, otherwise use the full path (the default in the script is for 64-bit cygwin).
-4. Figure out the full path where gpx.exe was installed. Enter this path in the script under the comment line “`ADJUST GPX PATH HERE`”.
-
-Now remember the full absolute path to this BAT file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `simple_ffcp_postproc.bat` in your documents folder on your C drive, then `PATH` is: “`C:\Users\Foobar\Documents\simple_ffcp_postproc.bat`”. Now you can move to *step 2.*
+Now remember the full absolute Windows path to this `slic3r_postprocess.bat` file, you will need it in the next step. This will be referred to as `PATH` below. For instance if your Windows account name is *Foobar* and you placed the file `slic3r_postprocess.bat` in your documents folder on your C drive, then `PATH` is: `"C:\Users\Foobar\Documents\slic3r_postprocess.bat"`.\
+Now you can move to *step 2.*
 
 
 ## Step 2: modify the config bundles
@@ -86,10 +83,10 @@ Replace all these lines with:
 post_process = PATH
 ```
 Where you substitute `PATH` with one of the following, as described in the previous steps:
-* the absolute UNIX-style path to the `make_fcp_x3g` script if you are running PrusaSlicer in Linux or Mac OS X;
-* the absolute Windows-style path to `slic3r_postprocess.bat` if you run `make_fcp_x3g` inside WSL inside Windows;
-* the absolute Windows-style path to `simple_ffcp_postproc.bat` if you deployed this inside Windows instead;
-* nothing, empty, if you opted to skip step 1 (the line would then be “`post_process = `”). Again, not recommended.
+* if you are running PrusaSlicer in Linux or Mac OS X: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
+* if you use a Perl interpreter in Windows: the absolute Windows-style paths to both `perl.exe` and the `make_fcp_x3g.pl` script, both between double quotes and with a space in between;
+* if you run `make_fcp_x3g.pl` inside WSL inside Windows: the absolute Windows-style path to `slic3r_postprocess.bat`;
+* if you opted to skip step 1: nothing, empty. The line would then be “`post_process = `”. Again, not recommended.
 
 
 ## Step 3: load the config bundles in PrusaSlicer
