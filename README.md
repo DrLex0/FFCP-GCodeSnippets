@@ -4,6 +4,8 @@ This is a set of configuration bundles and post-processing scripts that allow to
 
 These configs and G-code are made specifically for *PrusaSlicer.* They might work in the original Slic3r from which PrusaSlicer was forked, but I give no guarantees, and I give no support if you use this with anything else than PrusaSlicer.
 
+Since PrusaSlicer version 2.2, I'm now making releases for these configs with the same version as the PrusaSlicer version they were made for. If for some reason you are using an older version of PrusaSlicer, you should take the .ini file from the release of my configs with the same older version, to avoid backwards compatibility issues.
+
 This repository contains four things:
 
 1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
