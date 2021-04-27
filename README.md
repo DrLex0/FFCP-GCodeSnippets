@@ -83,7 +83,7 @@ It is possible to make this work with [Cygwin](https://www.cygwin.com/), but sin
 
 ## Step 2: modify the config bundles
 
-There are two variations on the config bundle: most likely you will need the regular one. The other one (with ‘MVF’ in its name) is only to be used if you have upgraded your printer with the [MightyVariableFan system](https://github.com/DrLex0/MightyVariableFan).
+In the folder **ConfigBundles** you will find two variations: most likely you will need the regular config bundle. The other one (with ‘MVF’ in its name) is only to be used if you have upgraded your printer with the [MightyVariableFan system](https://github.com/DrLex0/MightyVariableFan).
 
 The .ini file is only temporary. It will be loaded into PrusaSlicer in the next step, after this you can discard the file.
 
@@ -93,13 +93,24 @@ post_process = /You-need-to-update-print-configs/see-https://bit.ly/3l13MrN
 ```
 Replace all these lines with:
 ```
-post_process = PATH
+post_process = trans_PATH
 ```
-Where you substitute `PATH` with one of the following, as described in the previous steps:
+Where you substitute `trans_PATH` with the transformed value of `PATH` as will be explained shortly. Remember, `PATH` must be one of the following, as described in the previous steps:
 * if you are running PrusaSlicer in Linux or Mac OS X: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
 * if you use a Perl interpreter in Windows: the absolute Windows-style paths to both `perl.exe` and the `make_fcp_x3g.pl` script, both between double quotes and with a space in between;
 * if you run `make_fcp_x3g.pl` inside WSL: the absolute Windows-style path to `slic3r_postprocess.bat`;
 * if you opted to skip step 1: nothing, empty. The line would then be “`post_process = `”. Again, not recommended.
+
+Transform this `PATH` into `trans_PATH` as follows, in this order:
+1. replace every backslash `\` with a double backslash: `\\`
+2. prepend every double quote `"` with one backslash: `\"`
+3. put the whole thing between double quotes.
+
+Example: if your `PATH` was:<br>
+```"C:\Strawberry\perl\bin\perl.exe" "C:\Stuff\script.pl"```
+
+then the lines in the .ini file must become:<br>
+```post_process = "\"C:\\Strawberry\\perl\\bin\\perl.exe\" \"C:\\Stuff\\script.pl\""```
 
 
 ## Step 3: load the config bundles in PrusaSlicer
