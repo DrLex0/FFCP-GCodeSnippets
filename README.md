@@ -23,13 +23,13 @@ You should never exceed 240°C for longer than a few minutes if you have not upg
 
 # Installation and Setup Instructions
 
-If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If you think parts of this README can be improved, the best thing you can do is create an issue in the GitHub project itself, or maybe even a pull request.
+If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If you think parts of this README can be improved, the best thing you can do is provide the improved text, for instance by creating a new GitHub issue or maybe even a pull request, or just by sending the remarks through the contact page of [my website](https://www.dr-lex.be/).
 
 ## Step 1: install the `make_fcp_x3g.pl` script
 
-This script can do many things but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program, to convert the G-code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as a *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
+This script can do many things, but its core functions are to apply an important workaround for a certain bug in PrusaSlicer, and then invoke the GPX program to convert the G-code produced by PrusaSlicer into x3g files that the printer understands. This script will be directly or indirectly configured as a *post-processing script* in PrusaSlicer to be run automatically after slicing. It will make your workflow easier.
 
-You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you don't.
+You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you do not.
 
 If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In Mac OS X, gpx can be installed through [homebrew](https://brew.sh/).\
 Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
@@ -46,11 +46,11 @@ As for the post-processing script itself, you need it regardless of whether you 
    You can now move to *step 2.*
 3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes more sense to rely on its Perl interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
 
-The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer.
+The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer with these post-processing scripts.
 
 ### WSL instructions
 
-For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file `poor_mans_wslpath.txt`.
+For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file `poor_mans_wslpath.txt`. Your WSL version must also support the `WSLPATH` variable, which should be the case for any recent build.
 
 Open the `make_fcp_x3g.pl` script in a text editor and modify it according to its instructions until you hit the “`No user serviceable parts`” line. Important: each time you need to specify the path to a program or script, specify the *Linux file path* where you placed that program (e.g. gpx) or script inside the WSL Linux environment.
 
@@ -65,6 +65,7 @@ Now create a BAT wrapper script in your Windows filesystem, any text editor will
 ```
 set fpath=%~1
 set fpath=%fpath:'='$'\'''%
+set WSLENV=SLIC3R_PP_OUTPUT_NAME/up
 bash -c "perl '/your/linux/path/to/make_fcp_x3g.pl' -w '%fpath%'"
 ```
 
@@ -115,7 +116,7 @@ then the lines in the .ini file must become:<br>
 
 ## Step 3: load the config bundles in PrusaSlicer
 
-If you open PrusaSlicer for the first time, try to bypass its config wizard and don't select any specific printer type. The way to do this seems to change with every release. If the wizard did make any Print, Filament, or Printer settings, delete them before loading the config bundle.
+If you open PrusaSlicer for the first time, try to bypass its config wizard and don't select any specific printer type. The way to do this seems to change with every release. If the wizard did create any Print, Filament, or Printer settings, delete them before loading the config bundle.
 
 Now import the .ini file you edited before. PrusaSlicer will overwrite existing configs with the same names, other ones will be left untouched. If you have nothing custom, it is better to first wipe everything before importing so you don't accumulate old cruft. If you make modifications to a config and you want to preserve them, save it as a new config with a unique name to prevent it from being overwritten in a future update.
 
