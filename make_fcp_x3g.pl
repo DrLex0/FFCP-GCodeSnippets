@@ -508,7 +508,10 @@ sub sanity_check
 	my $o_handle = shift;
 	$o_handle = \*STDERR if(! $o_handle);
 
-	print $o_handle "Running sanity check.\nPATH is:\n${ENV{'PATH'}}\n";
+	print $o_handle "Running sanity check.\nPATH is:\n${ENV{'PATH'}}\n\n";
+	if($ENV{'SLIC3R_PP_OUTPUT_NAME'}) {
+		print $o_handle "SLIC3R_PP_OUTPUT_NAME is defined:\n${ENV{'SLIC3R_PP_OUTPUT_NAME'}}\n\n";
+	}
 	my $fail;
 	if($GPX) {
 		$fail = 1 if(gpx_insane($o_handle));
