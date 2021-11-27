@@ -33,7 +33,7 @@
 #        th       = the threshold distance above which compensation is applied,
 #        flatness = the overall rate at which the compensation curve flattens,
 #        slope_th = the desired slope of the curve for x = th.
-#   Therefore: a = 1/(slope_th * flatness)
+#   Therefore: a = 1/(slope_th * flatness)  or  slope_th = 1/(a * flatness)
 #
 # TODO: it is obvious that this risks causing over-extrusion. Usually it isn't a problem but when
 #   printing e.g. thin solid pillars spaced far apart, they will become too thick due to extra
@@ -63,11 +63,11 @@ my $extraFirstUnretract = 0.6;
 # The following values are tweaked for a retraction of about 1mm at about 10mm/s. Optimal values
 # will probably vary per retraction settings and filament type.
 
-# The travel distance in mm below which no additional un-retract will be added.
+# The travel distance in mm below which no additional un-retract will be added ('th' in equations).
 # To disable unretract compensation entirely, set this to a negative value.
 my $distanceThreshold = 10;
 # The rate around the point of distanceThreshold, at which extra extrusion is added per mm beyond
-# distanceThreshold. Must be greater than 0.
+# distanceThreshold ('slope_th' in equations). Must be greater than 0.
 my $thresholdSlope = 1/400;  # or 0.025mm extra per cm
 # The overall flatness of the compensation curve. Larger values will more quickly decrease the rate
 # of extra extrusion as we go further away from distanceThreshold, i.e. cause a flatter curve.

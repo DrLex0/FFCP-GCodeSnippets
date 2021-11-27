@@ -14,4 +14,13 @@ The remedy for the second problem is the same as for the first: push some extra 
 
 This strategy also incurs a risk of causing *over-extrusion* in certain situations. Because my guesstimated formula is not perfect and its parameters would probably need to be re-tuned for each filament and print settings, sometimes too much extra material is added after travels, and this can become visible when printing for instance two thin solid pillars. If you anticipate that this may be a problem for a particular print, either disable the script or reduce the `thresholdSlope` parameter.
 
-The default parameters in the script should work well enough, they seem to work fine for both the stock extruder and my Micro Swiss all-metal hot-end. If you do want to tweak them, look in the script for instructions.
+### Tuning the parameters
+The default parameters in the script should work well enough, they seem to work fine for both the stock extruder and my Micro Swiss all-metal hot-end. If you do want to tweak them, look in the script and below for instructions.
+
+The way I searched for a relation between travel distance and extra extrusion required, was by printing sets of two 20 mm diameter cylinders with only a single wall, spaced apart across different distances, with seam position set to *nearest*. When I noticed under-extrusion, which manifests itself as a thinner wall or gap at the seams, I increased the ‘extra length on restart’ in PrusaSlicer. When I noticed over-extrusion, which manifests itself as a blob at the seams, I reduced this setting. I repeated this until it looked right. Then I noted down the optimal ‘extra length’ value per travel distance. I plotted this in a graph, and looked for a formula that was a reasonable fit for this “extra unretract versus travel distance” curve. I came up with the following equation (*x* is travel distance):
+> extra unretract = ln( *(x + a - th)/a* ) / *flatness*,
+
+You can follow the same procedure to derive optimal parameters for your particular printer and print settings, by disabling the post-processing script and then re-creating the same graph from scratch. Overlay a plot of the above equation, and look for values of *a, th* and *flatness* that yield a good fit for your graph. Then set:
+* `$distanceThreshold` = *th*,
+* `$thresholdSlope` = 1 / *(a \* flatness)*,
+* `$flatness` = *flatness*.
