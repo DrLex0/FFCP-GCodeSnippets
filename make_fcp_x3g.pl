@@ -59,6 +59,18 @@ use Getopt::Std;
 ### Modify the following values to match your environment.
 ### Do not comment out lines. If something is not applicable, set its value
 ### to empty '' for $variables, or () for @lists.
+###
+### To keep things easy, put all paths between 'single quotes', which
+### avoids the need to escape special characters like backslashes.
+### Only single quotes would need to be escaped, although you should avoid
+### having quotes in paths altogether: 'don\'t use quotes in paths'.
+### If you really want to put paths between "double quotes", every special
+### character *must* be escaped, e.g.: "C:\\Users\\etc".
+### All paths are CASE SENSITIVE regardless of how your OS treats case
+### sensitivity. 'Perl' is not the same as 'perl'.
+### Windows hint: right-click a file while holding down shift and use
+###   "Copy as path". (Remember to change any double to single quotes.)
+
 
 # Optional: to augment the very basic PATH inside PrusaSlicer's post-
 # processing environment, you can add extra PATH components here. Separate
@@ -149,7 +161,7 @@ my $MACHINE = 'r1d';
 
 ############ No user serviceable parts below ############
 
-our $VERSION = '20211006';
+our $VERSION = '20211207';
 
 sub HELP_MESSAGE
 {
