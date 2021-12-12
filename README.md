@@ -6,12 +6,13 @@ These configs and G-code are made specifically for *PrusaSlicer.* They might wor
 
 Since PrusaSlicer version 2.2, I'm now making releases for these configs with the same version as the PrusaSlicer version they were made for. If for some reason you are using an older version of PrusaSlicer, you should take the .ini file from the release of my configs with the same older version, to avoid backwards compatibility issues.
 
-This repository contains four things:
+This repository contains five things:
 
 1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
 2. **`make_fcp_x3g.pl`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. You can make do without this script, but it can make your workflow a lot easier.
-3. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
-4. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
+3. **`make_fcp_x3g.txt`:** a template for the configuration file needed by the post-processing script. Simplest is to ensure that the filled-in template is in the same directory as where you place the script.
+4. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
+5. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
 
 
 ## A warning in advance
@@ -25,7 +26,7 @@ You should never exceed 240°C for longer than a few minutes if you have not upg
 
 If you have a question, please go through both [the companion webpage](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html) and this README (again). I will most likely not answer any mails that ask something already clearly explained on any of those two pages. If you think parts of this README can be improved, the best thing you can do is provide the improved text, for instance by creating a new GitHub issue or maybe even a pull request, or just by sending the remarks through the contact page of [my website](https://www.dr-lex.be/).
 
-If you are truly stuck and need to contact me, make sure to mention what operating system you are using, and any other possibly relevant information that could help with troubleshooting.
+If you are truly stuck and need to contact me, make sure to mention what operating system you are using, what version of PrusaSlicer, and any other possibly relevant information that could help with troubleshooting.
 
 
 ## Step 1: install the `make_fcp_x3g.pl` script
@@ -39,15 +40,17 @@ Important: if you are going to use the WSL Linux environment in Windows, do not 
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
 
-1. **You are running Linux or Mac OS X:** open the `make_fcp_x3g.pl` Perl script in an editor, and modify it according to its instructions until you hit the “`No user serviceable parts`” line. When done, ensure the file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. (An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window.)\
+1. **You are running Linux or Mac OS X:** copy both `make_fcp_x3g` files (`.pl` and `.txt`) to the same location of your choice, and open `make_fcp_x3g.txt` in a text editor. Modify it according to its instructions. When done, ensure the `make_fcp_x3g.pl` file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files. (An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window.)\
    Try running the script with `-c` argument to see whether you configured it correctly. In Linux, you may need to install the `File::Which` Perl module (Debian or Ubuntu package `libfile-which-perl`).\
    You can now move to *step 2.*
-2. **You use a Perl interpreter in Windows:** this is the easiest way to use the script in Windows. I recommend [Strawberry Perl](https://strawberryperl.com/). Copy the script to a location where you have write permissions, and open it in an editor (I recommend [Notepad++](https://notepad-plus-plus.org/)). Modify the script according to its instructions until you hit the “`No user serviceable parts`” line. When done, figure out the full paths to both the Perl executable and the script. To obtain what will be referred to as `PATH` below, put the `perl.exe` path between double quotes, followed by a space, then the script path between double quotes. For instance if you installed Strawberry Perl in its default location, then `PATH` would look like:\
+2. **You use a Perl interpreter in Windows:** this is the easiest way to use the script in Windows. I recommend [Strawberry Perl](https://strawberryperl.com/). Copy both `make_fcp_x3g` files (`.pl` and `.txt`) to the same location where you have write permissions. A subdirectory of your user home folder is a good place (a Windows system directory is not).<br>
+   Open `make_fcp_x3g.txt` in a text editor (I recommend [Notepad++](https://notepad-plus-plus.org/)). Modify it according to its instructions. When done, figure out the full paths to both the Perl executable and the `make_fcp_x3g.pl` script. To obtain what will be referred to as `PATH` below, put the `perl.exe` path between double quotes, followed by a space, then the script path between double quotes. For instance if you installed Strawberry Perl in its default location, then `PATH` would look like:\
    `"C:\Strawberry\perl\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
    or if you would be using 64-bit Cygwin:\
    `"C:\cygwin64\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
+   Try running the script in a command shell with `-c` argument to see whether you configured it correctly. Just paste your value of PATH into a cmd shell and append `-c` at the end with a space before it. Fix any problems until it reports “OK.”
    You can now move to *step 2.*
-3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes more sense to rely on its Perl interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
+3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes more sense to rely on its Perl (and maybe Python) interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
 
 The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer with these post-processing scripts.
 
@@ -57,9 +60,9 @@ This is only relevant if you want to run the scripts inside WSL. Otherwise, skip
 
 For this to work, inside your WSL environment you must have a command `wslpath` that converts Windows paths to their Linux equivalent. This is automatically the case if you have Windows 10 version 1803 or newer with a standard WSL image. If not, follow the instructions in the file `poor_mans_wslpath.txt`. Your WSL version must also support the `WSLPATH` variable, which should be the case for any recent build.
 
-Open the `make_fcp_x3g.pl` script in a text editor and modify it according to its instructions until you hit the “`No user serviceable parts`” line. Important: each time you need to specify the path to a program or script, specify the *Linux file path* where you placed that program (e.g. gpx) or script inside the WSL Linux environment.
+Copy both `make_fcp_x3g` files (`.pl` and `.txt`) to the same location of your choice *inside the WSL environment.* Open `make_fcp_x3g.txt` in a text editor and modify it according to its instructions. Important: everything will run inside WSL, therefore each time you need to specify the path to a program or script, specify the *Linux file path* where you placed that program (e.g. gpx) or script inside the WSL Linux environment.
 
-When done, save the modified `make_fcp_x3g.pl` inside the Linux filesystem. Ensure both the script and gpx binary (if needed) are executable (`chmod a+x make_fcp_x3g.pl`).
+When done, ensure both the script and gpx binary (if needed) are executable (`chmod a+x make_fcp_x3g.pl`).
 
 You should now run the script with `-c` argument to check whether it works. It is possible you will have to install the `File::Which` Perl module, which can be done in Ubuntu with:
 ```

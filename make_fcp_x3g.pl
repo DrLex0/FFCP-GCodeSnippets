@@ -55,125 +55,51 @@ use File::Which;
 use Getopt::Std;
 
 
-### CONFIGURATION STARTS HERE. ############################################
-### Modify the following values to match your environment.
-### Do not comment out lines. If something is not applicable, set its value
-### to empty '' for $variables, or () for @lists.
-###
-### To keep things easy, put all paths between 'single quotes', which
-### avoids the need to escape special characters like backslashes.
-### Only single quotes would need to be escaped, although you should avoid
-### having quotes in paths altogether: 'don\'t use quotes in paths'.
-### If you really want to put paths between "double quotes", every special
-### character *must* be escaped, e.g.: "C:\\Users\\etc".
-### All paths are CASE SENSITIVE regardless of how your OS treats case
-### sensitivity. 'Perl' is not the same as 'perl'.
-### Windows hint: right-click a file while holding down shift and use
-###   "Copy as path". (Remember to change any double to single quotes.)
-
-
-# Optional: to augment the very basic PATH inside PrusaSlicer's post-
-# processing environment, you can add extra PATH components here. Separate
-# components by ':' in UNIX-like environments, or ';' in Windows cmd.exe.
-# You could just leave this empty but if you ensure that PATH contains the
-# locations of all executables (like perl or python3), you don't need to
-# specify their full paths below.
-my $EXTRA_PATH = '/usr/local/bin:/usr/local/sbin';
-
-# Path to the gpx binary. If it is in PATH, just 'gpx' suffices.
-# Otherwise, you might be able to obtain this path with `which gpx` in
-# UNIX-like systems, or `where gpx` in Windows.
-# To disable conversion to X3G (and leave it up to e.g. OctoPrint), use ''.
-my $GPX = '/usr/local/bin/gpx';
-
-# Set this to 1 to always keep a backup of the unprocessed gcode file,
-# regardless of -k option (useful for debugging).
-my $KEEP_ORIG = 0;
-
-# Set this to 1 to force debug mode (regardless of -d option). This is useful
-# to debug problems when invoking make_fcp_x3g from within PrusaSlicer or
-# other programs, and not all post-processing scripts seem to be working.
-my $DEBUG = 0;
-
-# The following settings are OPTIONAL and must be formatted as lists.
-# If you do not use a particular script, leave its value empty ().
-# Otherwise, specify it as a list formatted in one of the following ways
-# (shown with perl as an example, similar for python3):
-# 1. If perl or perl.exe is not in PATH:
-#    ('/path/to/perl', '/path/to/script.pl');
-#    or:
-#    ('C:\Strawberry\perl\bin\perl.exe', 'C:\path\to\script.pl');
-# 2. If perl is in PATH:
-#    ('perl', '/path/to/script.pl');
-#    or:
-#    ('perl', 'C:\path\to\script.pl');
-# 3. If you're in a UNIX-like environment, perl is in PATH, and the script
-#    file has executable permissions:
-#    ('/path/to/script.pl');
-# Do not use relative paths.
-# Mind that incorrect paths or non-executable script files will be silently
-# ignored at runtime. Use the sanity check (-c) to ensure you did not make
-# any mistakes.
-
-# Dualstrusion post-processing script.
-# See https://github.com/DrLex0/DualstrusionPostproc for more information.
-my @DUALSTRUDE_SCRIPT = ();
-
-# PWM postprocessor script, in case you would be using the MightyVariableFan
-# system, my slightly crazy solution to obtain variable fan speed by having
-# the FFCP communicate with a Raspberry Pi through beep sounds.
-# See https://github.com/DrLex0/MightyVariableFan for more information.
-my @PWM_SCRIPT = ();
-
-# Extra options to be passed to the PWM_SCRIPT, for instance you may want to
-# change options from their defaults, like --allow_split or --zmax.
-my @PWM_OPTS = ();
-
-# Path to the (experimental) retraction improver script.
-# It also fixes the under-extrusion when starting to print the skirt.
-my @RETRACT_SCRIPT = ();
-
-
-##### Advanced options, only change them if you know what you're doing. #####
-
-# The absolutely highest Z value allowed by your printer. This both acts as a
-# sanity check and will also update the final Z move in the end G-code when
-# necessary. (If you would print something 160mm tall, the default move to
-# 150mm must be adjusted to avoid ramming the nozzle into the print.)
-# According to official FFCP specs, Z maximum is 150mm and this limit is
-# hard-coded in older versions of the Sailfish firmware: it will ignore any
-# request to go beyond 150mm. Some newer versions do allow to go beyond this,
-# my printer can easily reach 170mm.
-# If you want to get the most out of your machine, do a test to see how deep
-# it can go and adjust Z_MAX accordingly, as well as 'Max print height' in
-# all your printer profiles.
-my $Z_MAX = 150;
-
-# For the above to work, this must match the comment string that marks the
-# final Z move in the end G-code.
-my $FINAL_Z_MOVE = '; send Z axis to bottom of machine';
-
-# Run `gpx -?` and look at the 'MACHINE' section. If it lists 'fcp' as one of
-# the allowed values, it is preferable to use that value here. Otherwise, use
-# 'r1d' instead, or something custom if you know what you're doing.
-my $MACHINE = 'r1d';
-
+### DO NOT EDIT THIS SCRIPT. ###
+# Configuration must now be done in a separate text file. By default this
+# script will look for a file "make_fcp_x3g.txt" in the same location as this
+# script. You can specify a different config file with the -f parameter.
+# Run the script with the -c option to check whether you correctly configured
+# the text file.
 
 ############ No user serviceable parts below ############
 
-our $VERSION = '20211207';
+our $VERSION = '20211212';
+
+# Defaults. Each variable will be overridden if specified in the config file.
+# If an array is specified in the file for a SINGLE-value item, only the first
+# element of the array will be considered.
+# In theory the script could be run without a config file at all, but I don't
+# allow this because it would hide configuration mistakes.
+my $EXTRA_PATH = '';
+my $KEEP_ORIG = 0;
+my $DEBUG = 0;
+
+my $GPX = '';
+my @DUALSTRUDE_SCRIPT;
+my @PWM_SCRIPT;
+my @RETRACT_SCRIPT;
+
+my $Z_MAX = 150;
+# Default comment string that marks the final Z move in the end G-code.
+my $FINAL_Z_MOVE = '; send Z axis to bottom of machine';
+my $MACHINE = 'r1d';
+
 
 sub HELP_MESSAGE
 {
 	my $prog = basename($0);
 	print <<__END__;
-${prog} [-dwPpkv] [-s S] input.gcode   or:   ${prog} -c
+${prog} [-dwPpkv] [-f FILE] [-s S] input.gcode   or:   ${prog} -c
 Processes G-code file for the FFCP and optionally converts it to X3G using GPX.
 Input file is overwritten and the X3G file is placed next to it, unless the
 SLIC3R_PP_OUTPUT_NAME environment variable exists. In the latter case, all
 additional files will be created based on the path indicated by that variable.
 
 Options:
+  -f FILE: use custom config file. By default, the script looks for a file
+      'make_fcp_x3g.txt' in the same directory as the script. A config file
+      is mandatory (it may be empty though).
   -c: performs a sanity check on all configured paths, and warns if they do
       not point to executable files. (Nothing will be processed even if other
       arguments are passed.)
@@ -190,20 +116,28 @@ __END__
 }
 
 
+my $conf_file = File::Spec->catfile(dirname($0), 'make_fcp_x3g.txt');
+
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %opts;
-exit 2 if(! getopts('hcdwPpks:v', \%opts));
+exit 2 if(! getopts('hf:cdwPpks:v', \%opts));
 
 if($opts{'h'}) {
 	HELP_MESSAGE();
 	exit;
 }
+# OK, I lied. The config file can be bypassed with -f 0, but you do so at your own risk.
+$conf_file = $opts{'f'} if(defined $opts{'f'} && $opts{'f'} ne '');
 my $sanity = $opts{'c'};
 my $wsl = $opts{'w'};
 my $no_postproc = $opts{'P'};
 my $force_progress = $opts{'p'};
 my $exit_sleep = $opts{'s'};
 my $verbose = $opts{'v'};
+
+my @config_warnings;
+read_config($conf_file) if($conf_file);
+
 $KEEP_ORIG = 1 if($opts{'k'});
 $DEBUG = 1 if($opts{'d'});
 
@@ -339,7 +273,7 @@ if(! $no_postproc) {
 	}
 
 	if(postproc_script_valid(@PWM_SCRIPT)) {
-		run_script('fan PWM post-processing', $inputfile, @PWM_SCRIPT, @PWM_OPTS);
+		run_script('fan PWM post-processing', $inputfile, @PWM_SCRIPT);
 	}
 }
 
@@ -398,6 +332,54 @@ sub shellEscape
 		$path =~ s/([\"\`\\\$])/\\$1/g;
 	}
 	return "\"${path}\"";
+}
+
+sub read_config
+# Parse a config file (normally make_fcp_x3g.txt), and set any variables
+# defined in it.
+{
+	my $f_path = shift;
+
+	open(my $f_handle, '<', $f_path) or seppuku("FATAL: cannot read ${f_path}\nPut a readable configuration file at that path, or provide a different one with -f.\n");
+	my $n = 0;
+	foreach my $line (<$f_handle>) {
+		$n++;
+		chomp($line);
+		next if($line =~ /^\s*(#.*)?$/);
+
+		# Parse the line
+		my ($item, $val) = ($line =~ m/^\s*(\S+)\s*=\s*(.*?)\s*$/);
+		if(! defined $item || $item eq '') {
+			push(@config_warnings, "Ignored malformed line ${n}.");
+			next;
+		}
+		my @vals;
+		if($val =~ /^("[^"]*"\s*)*$/) {
+			@vals = ($val =~ m/"(.*?)"/g);
+		}
+		else {
+			push(@vals, $val);
+			push(@config_warnings, "Double quote(s) found in value for '${item}' but could not parse as ARRAY, hence interpreted as SINGLE.") if($val =~ /"/);
+		}
+
+		# Assign the variable. 'eval' is generally evil but OK in this situation.
+		if(grep(/^$item$/, ('KEEP_ORIG', 'DEBUG', 'EXTRA_PATH', 'GPX', 'Z_MAX', 'FINAL_Z_MOVE', 'MACHINE'))) {
+			if(@vals) {
+				eval("\$${item} = \$vals[0];");
+				push(@config_warnings, "An array was specified for SINGLE item '${item}', only using first element.") if($#vals > 0);
+			}
+			else {
+				eval("\$${item} = '';");
+			}
+		}
+		elsif(grep(/^$item$/, ('DUALSTRUDE_SCRIPT', 'PWM_SCRIPT', 'RETRACT_SCRIPT'))) {
+			eval("\@${item} = \@vals;");
+		}
+		else {
+			push(@config_warnings, "Ignored unknown item '${item}'.");
+		}
+	}
+	close($f_handle);
 }
 
 sub append_warning {
@@ -520,7 +502,8 @@ sub sanity_check
 	my $o_handle = shift;
 	$o_handle = \*STDERR if(! $o_handle);
 
-	print $o_handle "Running sanity check.\nPATH is:\n${ENV{'PATH'}}\n\n";
+	print $o_handle "Running sanity check for script version ${VERSION}.\nPATH is:\n${ENV{'PATH'}}\n\n";
+
 	if($ENV{'SLIC3R_PP_OUTPUT_NAME'}) {
 		print $o_handle "SLIC3R_PP_OUTPUT_NAME is defined:\n${ENV{'SLIC3R_PP_OUTPUT_NAME'}}\n\n";
 	}
@@ -541,7 +524,13 @@ sub sanity_check
 		$fail = 1 if(wsl_insane($o_handle));
 	}
 
-	print $o_handle "All checks seem OK!\n" if(! $fail);
+	if(@config_warnings) {
+		print $o_handle "WARNING: found the following suspect things in the configuration file at '${conf_file}'. Please check the correctness of that file.\n";
+		print $o_handle join("\n", @config_warnings) ."\n";
+	}
+	else {
+		print $o_handle "All checks seem OK!\n" if(! $fail);
+	}
 }
 
 sub run_script
