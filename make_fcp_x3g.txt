@@ -1,0 +1,156 @@
+### MAKE_FCP_X3G CONFIGURATION FILE ###
+
+# Either put this file in the same location as the make_fcp_x3g.pl script
+#   and ensure it is called "make_fcp_x3g.txt",
+# or pass this file's path to the script with the '-f' parameter.
+# (If you are using a symlink to the .pl script, then the script will use that
+#   symlink's directory for the default config location.)
+#
+# Modify the values below according to your environment and preferences.
+# Lines starting with # are comments and will be ignored.
+# Remove the '#' before a line to enable it, add one to disable it.
+#
+# The format of a valid configuration item is very simple:
+#   ITEM_NAME = a value or an array of values.
+#
+# You can always specify an array, but items marked as [SINGLE] will only
+#   consider the first element if you would pass an array. Items that will
+#   consider multiple elements are marked as [ARRAY].
+# If you need more than a single element in an [ARRAY] value, you must put
+#   EACH element between double quotes. For a [SINGLE] value or an [ARRAY]
+#   with only 1 element, you can omit the quotes. Some examples:
+# EXAMPLE_ARRAY1 = "first element" "second element"
+# EXAMPLE_ARRAY2 = this array has only 1 element because no quotes
+# EXAMPLE_VALUE1 = "you could enclose a SINGLE in quotes"
+# EXAMPLE_VALUE2 = or just omit them
+#
+# Any whitespace around '=', as well as at the end of the line, is ignored.
+# There are no escape characters, everything is literal. This means you cannot
+#   really use a double quote anywhere, except to delineate values. None of
+#   the values should ever need to contain a double quote.
+#
+# Avoid non-ASCII characters. If you cannot avoid them, try saving this file
+#   in the same codepage as your operating system uses for file paths. Often
+#   this will be UTF-8, but it may be different. You're on your own here.
+
+
+### GLOBAL CONFIGURATION ###
+
+# [SINGLE] Set this to 1 to always keep a backup of the unprocessed G-code
+#   file, regardless of -k option (useful for debugging).
+
+KEEP_ORIG = 0
+
+# [SINGLE] Set this to 1 to force debug mode (regardless of -d option).
+#   This is useful to debug problems when invoking make_fcp_x3g.pl from within
+#   PrusaSlicer or other programs, and not all post-processing steps seem to
+#   be working.
+
+DEBUG = 0
+
+# [SINGLE] Optional extra execution path elements.
+#   If you want to augment the very basic execution PATH inside PrusaSlicer's
+#   post-processing environment, you can add extra path components here.
+# In UNIX-like environments: separate components by colons ':'.
+# In Windows cmd.exe: separate components by semicolons ';'.
+# You can simply leave this empty and use full absolute paths everywhere.
+#   The advantage of correctly setting this, is that you can use the plain
+#   names of executables (like perl or python3) instead of their full paths.
+
+#EXTRA_PATH = /usr/local/bin:/usr/local/sbin
+
+
+### OPTIONAL POST-PROCESSING STEPS ###
+
+# Enable what you want or need. Leave the rest commented out.
+#
+# RULES:
+# * Do not use relative paths.
+# * All paths are CASE SENSITIVE regardless of how your OS treats case
+#   sensitivity. "Perl" is not the same as "perl".
+# * No path can contain a double quote, even if your OS allows it.
+# * Do not try to override the -o option in extra post-processing scripts.
+# * The best way to disable something is to put a '#' before it to comment out
+#   its line. An empty value is also OK.
+# * Incorrect paths or non-executable script files will be silently ignored at
+#   runtime. They will only be reported when running the script with the
+#   sanity check (-c) option. Do this after saving this config, to ensure you
+#   did not make any mistakes.
+# HINT:
+# Avoid manually typing paths! Pretty much every OS has a way of directly
+#   obtaining a file's path. For instance in Windows: right-click the file
+#   while holding down shift and use "Copy as path".
+
+# [SINGLE] Path to the gpx binary that converts gcode to printable files.
+#   If the binary can be found in (EXTRA_)PATH, just 'gpx' suffices.
+#   Otherwise, specify the full path (you might be able to obtain it with
+#   `which gpx` in UNIX-like systems, or `where gpx` in Windows).
+# To disable conversion to X3G (and leave it up to e.g. OctoPrint), comment
+#   out the line or set an empty value.
+
+#GPX = /usr/local/bin/gpx
+
+# The following are all Perl or Python scripts and are all [ARRAY] type values
+#   such that a command with multiple arguments can be provided.
+#   You can specify these as follows.
+# 1. If perl or python is not in PATH, or you are unsure:
+#    "/path/to/perl" "/path/to/script.pl"
+#      or:
+#    "C:\Strawberry\perl\bin\perl.exe" "C:\path\to\script.pl"
+# 2. If perl/python is in PATH:
+#    "perl" "/path/to/script.pl"
+#      or:
+#    "perl" "C:\path\to\script.pl"
+# 3. If you are in a UNIX-like environment, perl/python is in PATH, and the
+#    script file has executable permissions:
+#    "/path/to/script.pl"
+
+# [ARRAY] Dualstrusion post-processing script.
+#   See https://github.com/DrLex0/DualstrusionPostproc for more information.
+
+#DUALSTRUDE_SCRIPT = "/Your/path/to/dualstrusion-postproc.pl"
+
+# [ARRAY] PWM postprocessor script, in case you would be using the
+#   MightyVariableFan system, my slightly crazy solution to obtain variable
+#   fan speed by having the FFCP communicate with a Raspberry Pi through beep
+#   sounds. You can pass extra options like "--allow_split" by adding them to
+#   the array.
+# See https://github.com/DrLex0/MightyVariableFan for more information.
+
+#PWM_SCRIPT = "/Your/path/to/pwm_postprocessor.py" "--allow_split"
+
+# [ARRAY] Path to the (experimental) retraction improver script.
+#   It also fixes the under-extrusion when starting to print the skirt.
+
+#RETRACT_SCRIPT = "/Your/path/to/retraction-improver.pl"
+
+
+### ADVANCED OPTIONS ###
+# Only change these if you know what you're doing.
+
+# [SINGLE] The absolutely highest Z value allowed by your printer.
+#   This both acts as a sanity check and will also update the final Z move in
+#   the end G-code when necessary. (If you would print something 160mm tall,
+#   the default move to 150mm must be adjusted to avoid ramming the nozzle
+#   into the print.)
+# According to official FFCP specs, Z maximum is 150mm, and this limit is
+#   hard-coded in older versions of the Sailfish firmware: it will ignore any
+#   request to go beyond 150mm. Some newer versions do allow to go beyond
+#   this, my printer can easily reach 170mm.
+# If you want to get the most out of your machine, do a test to see how deep
+#   the bed can go and adjust Z_MAX accordingly, as well as 'Max print height'
+#   in all your printer profiles.
+
+Z_MAX = 150
+
+# [SINGLE] For the above to work, this must match the comment string that
+#   marks the final Z move in the end G-code.
+
+FINAL_Z_MOVE = "; send Z axis to bottom of machine"
+
+# [SINGLE] Machine type for GPX.
+#   Run `gpx -?` and look at the 'MACHINE' section. If it lists 'fcp' as one
+#   of the allowed values, it is preferable to use that value here. Otherwise,
+#   stick to "r1d", or use something custom if you know what you're doing.
+
+MACHINE = r1d
