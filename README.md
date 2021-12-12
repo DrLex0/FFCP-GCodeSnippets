@@ -152,7 +152,7 @@ If this does not show obvious problems, the next thing to try is to enable the s
   `"C:\Strawberry\perl\bin\perl.exe" "C:\Stuff\make_fcp_x3g.pl" "-d";`<br>
   (Do not save these modified Print Settings, or remember to remove the `"-d"` afterwards.)
 * Or, if you invoke the script from a BAT file, add the `-d` parameter there.
-* Or, edit the script itself and set `$DEBUG` to 1.
+* Or, set `DEBUG = 1` in your `make_fcp_x3g.txt` config file.
 
 Then try to export the sliced model again. The result should be that a file ‘`make_fcp_x3g_check.txt`’ appears next to the G-code file, containing the same sanity check report as when running the script with `-c`. If this file is not even being created, then the problem happens even before the script is being called and you will have to try the following.
 
