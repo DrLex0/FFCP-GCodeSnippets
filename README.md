@@ -38,7 +38,18 @@ You can choose not to use this and do the GPX conversion and bug workarounds all
 If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In Mac OS X, gpx can be installed through [homebrew](https://brew.sh/).\
 Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
 
-As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not. Your options are:
+As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not.
+
+### Upgrading from a previous release
+
+If you are upgrading from a release of this config bundle older than 2.4, there is an important change. Configuration has been split off to a separate text file that has to reside in the same folder as the script, and the script itself must no longer be modified. It is a good idea to make a backup of your old script before overwriting it, so you can easily port your old configuration to the new file.
+
+From 2.4 on, upgrading the script is as simple as replacing the `.pl` file and keeping your current `.txt` configuration file. Should there ever be a change like a new config item, I will mention it in a release notes file, but so far there is none.<br>
+Steps 2 and 3 should also be repeated when upgrading, to have the latest G-code and improved print settings.
+
+### How to deploy and configure the script
+
+The workflow depends on your operating system and how you want to run the script.
 
 1. **You are running Linux or Mac OS X:** copy both `make_fcp_x3g` files (`.pl` and `.txt`) to a directory whose location will never change. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files.<br>
 Open `make_fcp_x3g.txt` in a text editor and modify it according to its instructions. When done, ensure the `make_fcp_x3g.pl` file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. (An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window.)\
@@ -131,9 +142,10 @@ Even if you skipped step 1, you must still update the ini file. The line must be
 
 ## Step 3: load the config bundles in PrusaSlicer
 
-If you open PrusaSlicer for the first time, try to bypass its config wizard and don't select any specific printer type. The way to do this seems to change with every release. If the wizard did create any Print, Filament, or Printer settings, delete them before loading the config bundle.
+If you open PrusaSlicer for the first time, try to bypass its config wizard and don't select any specific printer type. The way to do this seems to change with every release so it is pointless to try to describe this in detail. If the wizard did create any Print, Filament, or Printer settings, I recommend to delete them before loading the config bundle.
 
-Now import the .ini file you prepared in step 2. PrusaSlicer will overwrite existing configs with the same names, other ones will be left untouched. If you have nothing custom, it is better to first wipe everything before importing so you don't accumulate old cruft. If you make modifications to a config and you want to preserve them, save it as a new config with a unique name to prevent it from being overwritten in a future update.
+Now import the .ini file you prepared in step 2 with the “Import Config Bundle” menu option. PrusaSlicer will overwrite existing configs with the same names, other ones will be left untouched. This means obsolete print settings will accumulate, unless you wipe all settings whose names start with “`Lex-`” before importing the bundle, but this is optional.<br>
+It also means that when you make modifications to a `Lex-` print setting and you want to preserve those customizations, you must save it as a new print setting with a unique name to prevent it from being overwritten in a future update.
 
 You can discard the .ini file, it is no longer needed unless you want to keep it as a backup.
 
