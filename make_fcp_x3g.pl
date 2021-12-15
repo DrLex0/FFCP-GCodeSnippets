@@ -64,7 +64,7 @@ use Getopt::Std;
 
 ############ No user serviceable parts below ############
 
-our $VERSION = '20211212';
+our $VERSION = '20211215';
 
 # Defaults. Each variable will be overridden if specified in the config file.
 # If an array is specified in the file for a SINGLE-value item, only the first
@@ -105,7 +105,8 @@ Options:
       arguments are passed.)
   -d: debug mode: performs the sanity check, writes its result to a file
       'make_fcp_x3g_check.txt' in the same directory as the input, and then
-      continues processing.
+      continues processing. Will try to write a FAIL file in all cases where
+      the script aborts unexpectedly.
   -w: converts Windows file path to a Linux path inside a WSL environment.
   -P: disables all postprocessing and only runs GPX without -p option.
   -p: enable -p option of GPX even if -P is used.
@@ -134,19 +135,52 @@ my $no_postproc = $opts{'P'};
 my $force_progress = $opts{'p'};
 my $exit_sleep = $opts{'s'};
 my $verbose = $opts{'v'};
+$DEBUG = 1 if($opts{'d'});
+
+
+# Try to parse input file argument already, such that we can at least try to
+# write a FAIL file if -d and something fatal happens in the early stages.
+my $inputfile = shift;
+
+if($wsl && defined $inputfile && $inputfile ne '') {
+	# Although the conversion between Windows and Linux paths seems trivial, it
+	# has many quirks so it is better to rely on the dedicated wslpath tool.
+	print "Converting incoming Windows path '${inputfile}' to UNIX path\n" if($verbose);
+	my $in_esc = shellEscape($inputfile);
+	$inputfile = qx(wslpath -a ${in_esc});
+	$inputfile =~ s/\n$// if($inputfile);
+	if($? || ! defined $inputfile || $inputfile eq '') {
+		seppuku("FATAL: 'wslpath' command not found or failed\n");
+	}
+	print "Converted Windows path to WSL path: '${inputfile}'\n";
+}
+
+# In case of WSL, this variable must already be converted to a Linux path.
+my $outputfile = $ENV{'SLIC3R_PP_OUTPUT_NAME'} ? $ENV{'SLIC3R_PP_OUTPUT_NAME'} : $inputfile;
+
+my $out_base = $outputfile;
+$out_base =~ s/\.[^.]+$// if(defined $out_base);
+my ($origfile, $fail_file, $warn_file);
+$origfile = "${out_base}_orig.gcode" if(defined $out_base);
+# Avoid making a possibly invisible file
+$out_base = 'make_fcp_x3g' if(defined $out_base && $out_base eq '');
+$warn_file = "${out_base}.WARN.txt" if(defined $out_base);
+$fail_file = "${out_base}.FAIL.txt" if(defined $out_base);
+unlink($warn_file, $fail_file) if(defined $out_base);
+
 
 my @config_warnings;
 read_config($conf_file) if($conf_file);
 
+# If config changed these, command line arguments still get precedence
 $KEEP_ORIG = 1 if($opts{'k'});
 $DEBUG = 1 if($opts{'d'});
 
 if(defined $exit_sleep && $exit_sleep !~ /^\d?\.?\d+$/) {
-	print STDERR "ERROR: argument following -s must be a positive number\n";
 	# Since someone is probably trying to add the -s argument to catch an
 	# error briefly flashing, sleep with a default to show this error.
 	$exit_sleep = 3;
-	do_exit(2);
+	fatality(2, "ERROR: argument following -s must be a positive number\n");
 }
 
 if($EXTRA_PATH) {
@@ -166,28 +200,9 @@ if($sanity) {
 	exit;
 }
 
-my $inputfile = shift;
 if(! defined $inputfile || $inputfile eq '') {
-	print STDERR "ERROR: argument should be the path to a .gcode file\n";
-	HELP_MESSAGE();
-	do_exit(2);
+	fatality(2, "ERROR: argument should be the path to a .gcode file.\nRun this script with -h for usage information.\n");
 }
-
-if($wsl) {
-	# Although the conversion between Windows and Linux paths seems trivial, it
-	# has many quirks so it is better to rely on the dedicated wslpath tool.
-	print "Converting incoming Windows path '${inputfile}' to UNIX path\n" if($verbose);
-	my $in_esc = shellEscape($inputfile);
-	$inputfile = qx(wslpath -a ${in_esc});
-	$inputfile =~ s/\n$// if($inputfile);
-	if($? || ! defined $inputfile || $inputfile eq '') {
-		seppuku("FATAL: 'wslpath' command not found or failed\n");
-	}
-	print "Converted Windows path to WSL path: '${inputfile}'\n";
-}
-
-# In case of WSL, this variable must already be converted to a Linux path.
-my $outputfile = $ENV{'SLIC3R_PP_OUTPUT_NAME'} ? $ENV{'SLIC3R_PP_OUTPUT_NAME'} : $inputfile;
 
 my ($i_handle, $o_handle);
 
@@ -198,15 +213,12 @@ if($DEBUG) {
 	close($o_handle);
 }
 
-if(! -r $inputfile) {
-	print STDERR "ERROR: input file not found or not readable: ${inputfile}\n";
-	do_exit(2);
+if(! -f $inputfile) {
+	fatality(2, "ERROR: input file not found or is not a file: ${inputfile}\n");
 }
-
-(my $stripped = $outputfile) =~ s/\.[^.]+$//;
-my $origfile = "${stripped}_orig.gcode";
-my $warn_file = "${stripped}.WARN.txt";
-my $fail_file = "${stripped}.FAIL.txt";
+if(! -r $inputfile) {
+	fatality(2, "ERROR: input file not readable, maybe insufficient permissions: ${inputfile}\n");
+}
 
 # -p in GPX overrides % display with something that better approximates total
 # print time than merely mapping the Z coordinate to a percentage. It still is
@@ -219,7 +231,6 @@ my $arg_p = $force_progress ? '-p' : '';
 if(! $no_postproc) {
 	$arg_p = '-p';
 
-	unlink($warn_file, $fail_file);
 	copy_file('original', $inputfile, $origfile) if($KEEP_ORIG);
 
 	adjust_final_z() if($FINAL_Z_MOVE);
@@ -296,22 +307,40 @@ do_exit(0);
 
 #### SUBROUTINES ####
 
+sub do_exit
+# Exit with given return code, without error message, after exit delay if
+# configured.
+{
+	sleep($exit_sleep) if($exit_sleep);
+	exit shift;
+}
+
+sub fatality
+# Print error message on STDERR, try to append it to $fail_file if DEBUG is
+# true, and then exit with the given result code, after exit delay.
+{
+	my ($err, @msgs) = @_;
+
+	print STDERR @msgs;
+	if($DEBUG && defined $fail_file && $fail_file ne '') {
+		my $f_handle;
+		if(open($f_handle, '>>', $fail_file)) {
+			print $f_handle @msgs;
+			close($f_handle);
+		}
+	}
+	do_exit($err);
+}
+
 sub seppuku
-# Exit with error message, similar to die but with pause if configured.
+# Exit with return code of previous command (or 255 if none), after printing
+# error message given as argument and waiting for exit delay if configured.
+# Use this instead of 'die'.
 {
 	my $err = $!;
 	$err = $? >> 8 if(! $err && $? >> 8);
 	$err = 255 if(! $err);
-	print STDERR @_;
-	sleep($exit_sleep) if($exit_sleep);
-	exit $err;
-}
-
-sub do_exit
-# Exit without error message, with pause if configured.
-{
-	sleep($exit_sleep) if($exit_sleep);
-	exit shift;
+	fatality($err, @_);
 }
 
 sub shellEscape
@@ -340,7 +369,7 @@ sub read_config
 {
 	my $f_path = shift;
 
-	open(my $f_handle, '<', $f_path) or seppuku("FATAL: cannot read ${f_path}\nPut a readable configuration file at that path, or provide a different one with -f.\n");
+	open(my $f_handle, '<', $f_path) or seppuku("FATAL: cannot read ${f_path}: $!\nPut a readable configuration file at that path, or provide a different one with -f.\n");
 	my $n = 0;
 	foreach my $line (<$f_handle>) {
 		$n++;
@@ -558,11 +587,10 @@ sub run_script
 	my $warnings = qx(${cmd} -o ${tmpname_esc} ${gcode_esc} 2>&1);
 	if($?) {
 		$warnings = "The ${name} script failed ($?), but without any output.\n" if(! $warnings);
-		open($o_handle, '>>', $fail_file) or seppuku("FATAL: failed to write to '${fail_file}'\n");
+		open($o_handle, '>>', $fail_file) or seppuku("FATAL: failed to write to '${fail_file}': $!\n");
 		print $o_handle $warnings;
 		close($o_handle);
-		print STDERR "FATAL: running ${name} script failed, aborting postprocessing.\n";
-		do_exit(1);
+		fatality(1, "FATAL: running ${name} script failed, aborting postprocessing.\n");
 	}
 	# Instead of using File::Copy, just read and write the data so we don't
 	# need to care about permissions of the tempfile.
@@ -578,7 +606,7 @@ sub adjust_final_z
 # FINAL_Z_MOVE, it updates that line to prevent the move from ramming the
 # nozzle into the print.
 {
-	open(my $f_handle, '+<', $inputfile) or seppuku("FATAL: cannot open '${inputfile}' for reading+writing.\n");
+	open(my $f_handle, '+<', $inputfile) or seppuku("FATAL: cannot open '${inputfile}' for reading+writing: $!\n");
 	my @lines;
 	my $chunk;
 	my $chunk_size = 16384;

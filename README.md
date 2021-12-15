@@ -159,14 +159,14 @@ If the `make_fcp_x3g.pl` script does not seem to work or produce correct output,
 perl.exe "C:\My Stuff\make_fcp_x3g.pl" -c
 ```
 
-If this does not show obvious problems, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done in either of the following ways:
-* In PrusaSlicer, go to Print Settings → Output options (enable Expert mode), and add “` "-d"`” after the script path, like this:<br>
+If this reports everything to be OK, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done in either of the following ways:
+* In PrusaSlicer, go to Print Settings → Output options (enable Expert mode), and add ` "-d"` after the script path, like this:<br>
   `"C:\Strawberry\perl\bin\perl.exe" "C:\Stuff\make_fcp_x3g.pl" "-d";`<br>
   (Do not save these modified Print Settings, or remember to remove the `"-d"` afterwards.)
 * Or, if you invoke the script from a BAT file, add the `-d` parameter there.
 * Or, set `DEBUG = 1` in your `make_fcp_x3g.txt` config file.
 
-Then try to export the sliced model again. The result should be that a file ‘`make_fcp_x3g_check.txt`’ appears next to the G-code file, containing the same sanity check report as when running the script with `-c`. If this file is not even being created, then the problem happens even before the script is being called and you will have to try the following.
+Then try to export the sliced model again. The result should be that a file ‘`make_fcp_x3g_check.txt`’ appears next to the G-code file, containing the same sanity check report as when running the script with `-c`. If this looks OK but there is also a `FAIL` file, look in that one for the actual error. If neither of these files are being created, then the problem happens even before the script is being called and you will have to try the following.
 
 In Windows, the script is being run in a command window that may reveal what is going wrong. Normally this window is closed immediately regardless of success or failure, which makes it hard to see any warnings or error messages. To keep the window open for 20 seconds, you can add `"-s" "20"` to the invocation of the `make_fcp_x3g.pl` script, in the same way as explained above for the `"-d"` parameter.<br>
 If you are invoking the script from a BAT file, the same effect can be obtained by adding this extra line at the end of the BAT file:
@@ -174,7 +174,7 @@ If you are invoking the script from a BAT file, the same effect can be obtained 
 timeout /t 20
 ```
 
-The Mac OS version of PrusaSlicer doesn't show this kind of output window and I'm not sure whether the Linux version does, so in those cases you have to resort to the `-c` and `-d` options, or start PrusaSlicer from a terminal to see all of its output.
+The Mac OS version of PrusaSlicer doesn't show this kind of output window and I'm not sure whether the Linux version does, so in those cases the `-s` option is useless and you have to resort to the `-c` and `-d` options, or start PrusaSlicer from a terminal or look in a system log to see all of its output.
 
 
 ## For the perfectionists
