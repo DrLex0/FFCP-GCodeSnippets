@@ -4,22 +4,22 @@ This is a set of configuration bundles and post-processing scripts that allow to
 
 These configs and G-code are made specifically for *PrusaSlicer.* They might work in the original Slic3r from which PrusaSlicer was forked, but I give no guarantees, and I give no support if you use this with anything else than PrusaSlicer.
 
-Since PrusaSlicer version 2.2, I'm now making releases for these configs with the same version as the PrusaSlicer version they were made for. If for some reason you are using an older version of PrusaSlicer, you should take the .ini file from the release of my configs with the same older version, to avoid backwards compatibility issues.
+Since PrusaSlicer version 2.2, I'm now making releases for these configs with the same (major) version as the PrusaSlicer version they were made for. If for some reason you are using an older version of PrusaSlicer, you should take the .ini file from the release of my configs with the same older version, to avoid backwards compatibility issues.
 
 This repository contains five things:
 
 1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
 2. **`make_fcp_x3g.pl`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. You can make do without this script, but it can make your workflow a lot easier.
-3. **`make_fcp_x3g.txt`:** a template for the configuration file needed by the post-processing script. Simplest is to ensure that the filled-in template is in the same directory as where you place the script.
+3. **`make_fcp_x3g.txt`:** a template for the configuration file needed by the post-processing script. Simplest is to ensure that the filled-in template is in the same directory as where you deploy the script.
 4. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
 5. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
 
 
 ## A warning in advance
 
-**Be careful with the temperatures in the filament presets!** Most likely you will need to reduce certain temperatures because I tweaked them on a Micro Swiss all-metal hot-end with glass bed + hairspray and hardened steel nozzle, and this setup requires higher temperatures than the stock hot-ends. The temperatures for PLA and ABS are safe, but especially the temperatures for PETG, flexible filaments, and obviously polycarbonate, are well above the 240°C limit for the stock hot-ends with their teflon liners.
+**Be careful with the temperatures in the filament presets!** If you have not upgraded anything about your printer, you will need to reduce certain temperatures because I tweaked them on a Micro Swiss all-metal hot-end with glass bed + hairspray and hardened steel nozzle, and this setup requires higher temperatures than the stock hot-ends. The temperatures for PLA and ABS are safe, but the temperatures for PETG, flexible filaments, and especially polycarbonate (PC), are well above the 240°C limit for the stock hot-ends with their teflon liners. When in doubt, read the ‘Notes’ for a certain filament profile in PrusaSlicer.
 
-You should never exceed 240°C for longer than a few minutes if you have not upgraded your hot-ends to all-metal. For PETG you should be able to get decent results at 240°C but I do recommend an all-metal hot-end with a pointy nozzle and higher temperatures to obtain good results with PETG.
+You should never exceed 240°C for longer than a few minutes if you have not upgraded your hot-ends to all-metal. For PETG you should be able to get decent results at 240°C but I do recommend an all-metal hot-end with a pointy steel nozzle and higher temperatures to obtain good results with PETG. (For the best results, you also need variable fan speed to apply mild cooling.) I have included one example PETG filament profile (the one whose name does not end in `-fan`) that is safe to use on an unmodified FFCP, but don't expect nice-looking results with it on a stock extruder.
 
 
 # Installation and Setup Instructions
