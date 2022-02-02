@@ -88,7 +88,7 @@ my $maxTools = 2;
 
 
 ###### No user serviceable parts below ######
-our $VERSION = '0.8';
+our $VERSION = '0.9';
 
 sub HELP_MESSAGE
 {
@@ -363,8 +363,10 @@ foreach my $line (<$fHandle>) {
 	else {
 		push(@output, $line);
 		# Sanity checks in case Slic3r output format changes or contains stuff I didn't consider.
-		logMsg($WARNING, "Unrecognized line with E argument at ${lineNumber}") if($line =~ /^[^;]+ E(\d*\.?\d+)/);
-		logMsg($WARNING, "Unrecognized line with X or Y argument at ${lineNumber}: $line") if($line =~ /^[^;]+ [XY](\d*\.?\d+)/);
+		if($line !~ /^G92 /) {
+			logMsg($WARNING, "Unrecognized line with E argument at ${lineNumber}") if($line =~ /^[^;]+ E(\d*\.?\d+)/);
+			logMsg($WARNING, "Unrecognized line with X or Y argument at ${lineNumber}: $line") if($line =~ /^[^;]+ [XY](\d*\.?\d+)/);
+		}
 	}
 }
 close($fHandle);
