@@ -6,13 +6,14 @@ These configs and G-code are made specifically for *PrusaSlicer.* They might wor
 
 Since PrusaSlicer version 2.2, I'm now making releases for these configs with the same (major) version as the PrusaSlicer version they were made for. If for some reason you are using an older version of PrusaSlicer, you should take the .ini file from the release of my configs with the same older version, to avoid backwards compatibility issues.
 
-This repository contains five things:
+This repository contains six things:
 
 1. **ConfigBundles:** the main PrusaSlicer config bundle. This is the bare minimum to get things working, but you should preferably also install the next thing:
 2. **`make_fcp_x3g.pl`:** a post-processing script that can automate the essential GCode-to-X3G conversion for you, as well as work around an annoying bug in PrusaSlicer, and optionally also invoke certain extra post-processing scripts. You can make do without this script, but it can make your workflow a lot easier.
 3. **`make_fcp_x3g.txt`:** a template for the configuration file needed by the post-processing script. Simplest is to ensure that the filled-in template is in the same directory as where you deploy the script.
 4. **Optional-postprocessing-scripts:** what the name says. See the README inside that directory for more info.
 5. **GCode:** the same G-code snippets that are already embedded into the config bundles, strictly spoken you can ignore this. It is possible that I will make small updates to these snippets without updating the whole config bundles, because that's kind of a hassle. If you see more recent commits in this **GCode** folder than inside the **ConfigBundles** folder and you want the latest and greatest, [follow the instructions on my site](https://www.dr-lex.be/software/ffcp-slic3r-profiles.html#gcode) to update them.
+6. **Bed_model:** an optional 3D model and texture to have a fancier display in PrusaSlicer. (Some extra work is needed to use these, see the instructions below.)
 
 
 ## A warning in advance
@@ -106,13 +107,18 @@ It is possible to make this work with [Cygwin](https://www.cygwin.com/), but sin
 
 In the folder **ConfigBundles** you will find two variations: most likely you will need the regular config bundle. The other one (with ‘MVF’ in its name) is only to be used if you have upgraded your printer with the [MightyVariableFan system](https://github.com/DrLex0/MightyVariableFan).
 
-You need to modify the .ini file before loading it into PrusaSlicer. The steps are described below, but I provide [a webpage that does everything for you](https://www.dr-lex.be/software/ffcp-slic3r-ini-helper.html). This page needs 2 things as input: the `PATH` value as described in the previous steps, and the appropriate config bundle ini file.
+You need to modify the .ini file before loading it into PrusaSlicer. The steps are described below, but I provide [a helper webpage that does everything for you](https://www.dr-lex.be/software/ffcp-slic3r-ini-helper.html). This page needs 2 things as input: the `PATH` value as described in the previous steps, and the appropriate config bundle ini file.
 
 Remember, `PATH` must be one of the following, as described in the previous steps:
 * if you are running PrusaSlicer in Linux or Mac OS X: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
 * if you use a Perl interpreter in Windows: the absolute Windows-style paths to both `perl.exe` and the `make_fcp_x3g.pl` script, both between double quotes and with a space in between;
 * if you run `make_fcp_x3g.pl` inside WSL: the absolute Windows-style path to `slic3r_postprocess.bat`;
 * if you opted to skip step 1: nothing, empty (again, not recommended).
+
+If you want to use the **bed 3D model and texture** from the `Bed_model` directory without having to configure them manually for each printer profile:
+1. Place the STL and PNG file somewhere on your computer's disk in a location that won't change.
+2. Obtain the full filesystem paths to both files, without surrounding quotes or escape characters.
+3. Paste those paths in the appropriate fields on the helper webpage.
 
 Follow the instructions [on the page](https://www.dr-lex.be/software/ffcp-slic3r-ini-helper.html) to obtain the transformed ini file, and then go to step 3.
 
@@ -144,7 +150,7 @@ Even if you skipped step 1, you must still update the ini file. The line must be
 
 If you open PrusaSlicer for the first time, try to bypass its config wizard and don't select any specific printer type. The way to do this seems to change with every release so it is pointless to try to describe this in detail. If the wizard did create any Print, Filament, or Printer settings, I recommend to delete them before loading the config bundle.
 
-Now import the .ini file you prepared in step 2 with the “Import Config Bundle” menu option. PrusaSlicer will overwrite existing configs with the same names, other ones will be left untouched. This means obsolete print settings will accumulate, unless you wipe all settings whose names start with “`Lex-`” before importing the bundle, but this is optional.<br>
+Now import the .ini file you prepared in step 2 with the “Import Config Bundle” menu option. PrusaSlicer will overwrite existing configs with the same names, other ones will be left untouched (including any settings you may have for other printers). This does mean obsolete print settings can accumulate, unless you wipe all settings whose names start with “`Lex-`” before importing the bundle, but this is optional.<br>
 It also means that when you make modifications to a `Lex-` print setting and you want to preserve those customizations, you must save it as a new print setting with a unique name to prevent it from being overwritten in a future update.
 
 You can discard the .ini file, it is no longer needed unless you want to keep it as a backup.
