@@ -45,16 +45,6 @@
 # 5. Optionally apply my retraction improver hack.
 # 6. Optionally run the G-code file through GPX to produce an x3g file.
 
-use strict;
-use warnings;
-use Fcntl qw(SEEK_CUR SEEK_END);
-use File::Basename;
-use File::Spec;
-use File::Temp qw/tempfile/;
-use File::Which;
-use Getopt::Std;
-
-
 ### DO NOT EDIT THIS SCRIPT. ###
 # Configuration must now be done in a separate text file. By default this
 # script will look for a file "make_fcp_x3g.txt" in the same location as this
@@ -64,7 +54,16 @@ use Getopt::Std;
 
 ############ No user serviceable parts below ############
 
-our $VERSION = '20211215';
+use strict;
+use warnings;
+use Fcntl qw(SEEK_CUR SEEK_END);
+use File::Basename;
+use File::Spec;
+use File::Temp qw/tempfile/;
+use File::Which;
+use Getopt::Std;
+
+our $VERSION = '20230221';
 
 # Defaults. Each variable will be overridden if specified in the config file.
 # If an array is specified in the file for a SINGLE-value item, only the first
@@ -451,11 +450,16 @@ sub gpx_insane
 		print $o_handle "Check failed: got unexpected result code when running gpx with -? argument: $?\n";
 		return 1;
 	}
+	if($verbose) {
+		my $line = (split(/\n/, $junk, 2))[0];
+		print $o_handle "First line of 'gpx -?' output: ${line}\n";
+	}
 	$junk = qx(echo T0 | ${gpx_esc} -i -m "${MACHINE}" 2>&1);
 	if($?) {
 		print $o_handle "Check failed: got error when running gpx with '${MACHINE}' machine type. Make sure this is supported. If not, try setting MACHINE to 'r1d'.\n";
 		return 1;
 	}
+	print $o_handle "GPX sanity check OK\n" if($verbose);
 	return 0;
 }
 
@@ -484,6 +488,7 @@ sub postproc_script_insane
 		print $o_handle "Check failed: got unexpected result code when running ${name} with -h argument.\n";
 		return 1;
 	}
+	print $o_handle "Post-processing script '${name}' sanity check OK\n" if($verbose);
 	return 0;
 }
 
@@ -515,7 +520,10 @@ sub wsl_insane
 	open(my $proc_f, '<', '/proc/version') or return 0;
 	my @proc_version = <$proc_f>;
 	close($proc_f);
-	return 0 if(! grep(/(Microsoft|WSL)/, @proc_version));
+	if(! grep(/(Microsoft|WSL)/, @proc_version)) {
+		print "Environment looks like Linux, but no WSL detected\n" if($verbose);
+		return 0;
+	}
 	print "WSL detected\n" if($verbose);
 	my $try_path = qx(wslpath -a 'C:\\Test\\file.zip');
 	if($? || ! defined $try_path || $try_path eq '') {
@@ -523,6 +531,7 @@ sub wsl_insane
 		print $o_handle "Make sure you have at least Windows 10 version 1803, and 'wslpath' can be run from a bash shell.\n";
 		return 1;
 	}
+	print $o_handle "WSL sanity check OK\n" if($verbose);
 	return 0;
 }
 
@@ -533,6 +542,8 @@ sub sanity_check
 
 	print $o_handle "Running sanity check for script version ${VERSION}.\nPATH is:\n${ENV{'PATH'}}\n\n";
 
+	print $o_handle "Config read from '${conf_file}'\n" if($verbose);
+
 	if($ENV{'SLIC3R_PP_OUTPUT_NAME'}) {
 		print $o_handle "SLIC3R_PP_OUTPUT_NAME is defined:\n${ENV{'SLIC3R_PP_OUTPUT_NAME'}}\n\n";
 	}
@@ -540,14 +551,26 @@ sub sanity_check
 	if($GPX) {
 		$fail = 1 if(gpx_insane($o_handle));
 	}
+	elsif($verbose) {
+		print $o_handle "GPX will not be used because GPX path is not configured\n";
+	}
 	if(@DUALSTRUDE_SCRIPT) {
 		$fail = 1 if(postproc_script_insane($o_handle, 'DUALSTRUDE_SCRIPT', @DUALSTRUDE_SCRIPT));
+	}
+	elsif($verbose) {
+		print $o_handle "DUALSTRUDE_SCRIPT will not be used because not configured\n";
 	}
 	if(@PWM_SCRIPT) {
 		$fail = 1 if(postproc_script_insane($o_handle, 'PWM_SCRIPT', @PWM_SCRIPT));
 	}
+	elsif($verbose) {
+		print $o_handle "PWM_SCRIPT will not be used because not configured\n";
+	}
 	if(@RETRACT_SCRIPT) {
 		$fail = 1 if(postproc_script_insane($o_handle, 'RETRACT_SCRIPT', @RETRACT_SCRIPT));
+	}
+	elsif($verbose) {
+		print $o_handle "RETRACT_SCRIPT will not be used because not configured\n";
 	}
 	if(-r '/proc/version') {
 		$fail = 1 if(wsl_insane($o_handle));

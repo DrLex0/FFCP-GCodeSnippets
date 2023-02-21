@@ -160,9 +160,9 @@ Now would be a good time to [return to the main article](https://www.dr-lex.be/s
 
 ## Troubleshooting
 
-If the `make_fcp_x3g.pl` script does not seem to work or produce correct output, the first thing you should try is to manually invoke it in a command shell, with the `-c` parameter to run a ‘sanity check’. In Unix-like environments you can probably run the script directly. In Windows you will need to call it as an argument to `perl.exe`, for instance:
+If the `make_fcp_x3g.pl` script does not seem to work or produces incorrect output, the first thing you should try is to manually invoke it in a command shell, with the `-c` parameter to run a ‘sanity check’. For even more verbose information, use `-vc`. In Unix-like environments you can probably run the script directly. In Windows you will need to call it as an argument to `perl.exe`, for instance:
 ```
-perl.exe "C:\My Stuff\make_fcp_x3g.pl" -c
+perl.exe "C:\My Stuff\make_fcp_x3g.pl" -vc
 ```
 
 If this reports everything to be OK, the next thing to try is to enable the same check when PrusaSlicer invokes the script. This can be done in either of the following ways:
