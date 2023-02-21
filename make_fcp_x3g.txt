@@ -7,22 +7,26 @@
 #   symlink's directory for the default config location.)
 #
 # Modify the values below according to your environment and preferences.
+# First we must agree on some terminology.
 # Lines starting with # are comments and will be ignored.
-# Remove the '#' before a line to enable it, add one to disable it.
+# When below I say "uncomment" a line, I mean removing its leading '#'
+#   character to enable it. Conversely, "commenting out" a line means
+#   adding a leading '#', which will disable that line.
 #
 # The format of a valid configuration item is very simple:
 #   ITEM_NAME = a value or an array of values.
 #
+# There are 2 types of configuration items: [SINGLE] and [ARRAY].
 # You can always specify an array, but items marked as [SINGLE] will only
-#   consider the first element if you would pass an array. Items that will
-#   consider multiple elements are marked as [ARRAY].
+#   consider the first element if you would pass an array, and ignore the
+#   rest. Only [ARRAY] items will consider multiple elements.
 # If you need more than a single element in an [ARRAY] value, you must put
-#   EACH element between double quotes. For a [SINGLE] value or an [ARRAY]
+#   EACH element between double quotes. For a [SINGLE] value, or an [ARRAY]
 #   with only 1 element, you can omit the quotes. Some examples:
 # EXAMPLE_ARRAY1 = "first element" "second element"
 # EXAMPLE_ARRAY2 = this array has only 1 element because no quotes
-# EXAMPLE_VALUE1 = "you could enclose a SINGLE in quotes"
-# EXAMPLE_VALUE2 = or just omit them
+# EXAMPLE_SINGLE1 = "you could enclose a SINGLE in quotes"
+# EXAMPLE_SINGLE2 = or just omit them
 #
 # Any whitespace around '=', as well as at the end of the line, is ignored.
 # There are no escape characters, everything is literal. This means you cannot
@@ -50,7 +54,8 @@ DEBUG = 0
 
 # [SINGLE] Optional extra execution path elements.
 #   If you want to augment the very basic execution PATH inside PrusaSlicer's
-#   post-processing environment, you can add extra path components here.
+#   post-processing environment, you can uncomment this line and add extra
+#   path components.
 # In UNIX-like environments: separate components by colons ':'.
 # In Windows cmd.exe: separate components by semicolons ';'.
 # You can simply leave this empty and use full absolute paths everywhere.
@@ -62,7 +67,9 @@ DEBUG = 0
 
 ### OPTIONAL POST-PROCESSING STEPS ###
 
-# Enable what you want or need. Leave the rest commented out.
+# Enable what you want or need by:
+# 1. uncommenting the desired "ITEM = value" lines,
+# 2. pasting/typing the correct value(s) after the "=" character.
 #
 # RULES:
 # * Do not use relative paths.
@@ -81,7 +88,8 @@ DEBUG = 0
 #   obtaining a file's path. For instance in Windows: right-click the file
 #   while holding down shift and use "Copy as path".
 
-# [SINGLE] Path to the gpx binary that converts gcode to printable files.
+
+# [SINGLE] Path to the GPX binary that converts gcode to printable files.
 #   If the binary can be found in (EXTRA_)PATH, just 'gpx' suffices.
 #   Otherwise, specify the full path (you might be able to obtain it with
 #   `which gpx` in UNIX-like systems, or `where gpx` in Windows).
@@ -89,6 +97,7 @@ DEBUG = 0
 #   out the line or set an empty value.
 
 #GPX = /usr/local/bin/gpx
+
 
 # The following are all Perl or Python scripts and are all [ARRAY] type values
 #   such that a command with multiple arguments can be provided.
@@ -105,10 +114,12 @@ DEBUG = 0
 #    script file has executable permissions:
 #    "/path/to/script.pl"
 
+
 # [ARRAY] Dualstrusion post-processing script.
 #   See https://github.com/DrLex0/DualstrusionPostproc for more information.
 
 #DUALSTRUDE_SCRIPT = "/Your/path/to/dualstrusion-postproc.pl"
+
 
 # [ARRAY] PWM postprocessor script, in case you would be using the
 #   MightyVariableFan system, my slightly crazy solution to obtain variable
@@ -119,7 +130,8 @@ DEBUG = 0
 
 #PWM_SCRIPT = "/Your/path/to/pwm_postprocessor.py" "--allow_split"
 
-# [ARRAY] Path to the (experimental) retraction improver script.
+
+# [ARRAY] The (experimental) retraction improver script.
 #   It also fixes the under-extrusion when starting to print the skirt.
 
 #RETRACT_SCRIPT = "/Your/path/to/retraction-improver.pl"
