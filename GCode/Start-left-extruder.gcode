@@ -1,5 +1,5 @@
 ;- - - Custom G-code for left extruder printing with FlashForge Creator Pro - - -
-;- - - by DrLex; 2016/09-2019/04. Released under Creative Commons Attribution License. - - -
+;- - - by DrLex; 2016/09-2023/05. Released under Creative Commons Attribution License. - - -
 ; IMPORTANT: ensure your home offsets are correctly set. The Y home offset is correct if
 ;   the initial extrusion performed by this code is at 3mm from the front edge of the bed.
 ; IMPORTANT: ensure "Use relative E distances" is enabled in Printer settings.
@@ -21,7 +21,8 @@
 ;z_offset = [z_offset]mm
 ;fill density = [fill_density]
 ;fill pattern = [fill_pattern]
-;infill only where needed = [infill_only_where_needed]
+;bottom fill pattern = [bottom_fill_pattern]
+;top fill pattern = [top_fill_pattern]
 ;
 ;skirts = [skirts]
 ;brim width = [brim_width]mm
