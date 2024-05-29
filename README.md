@@ -36,8 +36,8 @@ This script can do many things, but its core functions are to apply an important
 
 You can choose not to use this and do the GPX conversion and bug workarounds all manually and tediously. In that case, skip to step 2 below, but I recommend you do not.
 
-If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In Mac OS X, gpx can be installed through [homebrew](https://brew.sh/).\
-Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
+If you are using OctoPrint, you don't need GPX because it does the x3g conversion for you. Otherwise, you do need GPX: first [obtain the GPX binary](https://github.com/markwal/GPX) and install it somewhere. Use the most recent GPX build you can find. Do not use 2.0-alpha, it is broken. In MacOS, gpx can be installed through [homebrew](https://brew.sh/).\
+Important: if you are going to use the WSL Linux environment in Windows, do not install the Windows EXE of GPX. Instead, install the Linux GPX executable inside the Linux WSL environment. If you are using Ubuntu 18.04 or newer, running “`sudo apt install gpx`” in a Linux terminal will do the job. Otherwise, manually install the gpx binary and ensure it has executable permissions.
 
 As for the post-processing script itself, you need it regardless of whether you use OctoPrint or not.
 
@@ -52,7 +52,7 @@ Steps 2 and 3 should also be repeated when upgrading, to have the latest G-code 
 
 The workflow depends on your operating system and how you want to run the script.
 
-1. **You are running Linux or Mac OS X:** copy both `make_fcp_x3g` files (`.pl` and `.txt`) to a directory whose location will never change. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files.<br>
+1. **You are running Linux or MacOS:** copy both `make_fcp_x3g` files (`.pl` and `.txt`) to a directory whose location will never change. A suitable location would be a ‘bin’ folder in your home directory where you might also store other personal executable files.<br>
 Open `make_fcp_x3g.txt` in a text editor and modify it according to its instructions. When done, ensure the `make_fcp_x3g.pl` file is executable (`chmod a+x make_fcp_x3g.pl`) and remember the **full absolute path** to where you placed it. This will be referred to as `PATH` below. (An easy way to obtain the absolute path in Mac OS and many recent Linux UIs, is to drag the file into a terminal window.)\
    Try running the script in a terminal with `-c` argument to see whether you configured it correctly. In Linux, you may need to install the `File::Which` Perl module (Debian or Ubuntu package `libfile-which-perl`).\
    You can now move to *step 2.*
@@ -63,7 +63,7 @@ Open `make_fcp_x3g.txt` in a text editor and modify it according to its instruct
    `"C:\cygwin64\bin\perl.exe" "C:\path\to\make_fcp_x3g.pl"`\
    Try running the script in a command shell with `-c` argument to see whether you configured it correctly. Just paste your value of PATH into a cmd shell and append `-c` at the end with a space before it. Fix any problems until it reports “OK.”
    You can now move to *step 2.*
-3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL, then it makes more sense to rely on its Perl (and maybe Python) interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
+3. **You are running WSL inside Windows:** this is more complicated but if you already have WSL and have some experience with it, then it makes more sense to rely on its Perl (and maybe Python) interpreter than to install yet another one in Windows. You need the `make_fcp_x3g.pl` script, but also a BAT wrapper script to invoke it from within Windows. Follow the *‘WSL instructions’* subsection below.
 
 The above list is sorted from most to least recommended when it comes to ease and functionality. This indeed means that if you have the choice between either, then Linux or Mac OS are preferable over Windows when it comes to running PrusaSlicer with these post-processing scripts.
 
@@ -107,10 +107,12 @@ It is possible to make this work with [Cygwin](https://www.cygwin.com/), but sin
 
 In the folder **ConfigBundles** you will find two variations: most likely you will need the regular config bundle. The other one (with ‘MVF’ in its name) is only to be used if you have upgraded your printer with the [MightyVariableFan system](https://github.com/DrLex0/MightyVariableFan).
 
+### Recommended: using the online helper tool
+
 You need to modify the .ini file before loading it into PrusaSlicer. The steps are described below, but I provide [a helper webpage that does everything for you](https://www.dr-lex.be/software/ffcp-slic3r-ini-helper.html). This page needs 2 things as input: the `PATH` value as described in the previous steps, and the appropriate config bundle ini file.
 
 Remember, `PATH` must be one of the following, as described in the previous steps:
-* if you are running PrusaSlicer in Linux or Mac OS X: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
+* if you are running PrusaSlicer in Linux or MacOS: the absolute UNIX-style path to the `make_fcp_x3g.pl` script;
 * if you use a Perl interpreter in Windows: the absolute Windows-style paths to both `perl.exe` and the `make_fcp_x3g.pl` script, both between double quotes and with a space in between;
 * if you run `make_fcp_x3g.pl` inside WSL: the absolute Windows-style path to `slic3r_postprocess.bat`;
 * if you opted to skip step 1: nothing, empty (again, not recommended).
@@ -122,9 +124,10 @@ If you want to use the **bed 3D model and texture** from the `Bed_model` directo
 
 Follow the instructions [on the page](https://www.dr-lex.be/software/ffcp-slic3r-ini-helper.html) to obtain the transformed ini file, and then go to step 3.
 
-### Manually preparing the .ini file
+### Fallback: manually preparing the .ini file
 
-In case the helper webpage is unavailable, or you simply crave doing low-level editing of config files, open the appropriate .ini file in a text editor and do a find & replace on all occurrences of the following line, or use `sed` if you are a Linux/UNIX wizard:
+If the helper webpage works, then simply skip to step 3. Otherwise, if the webpage is unavailable, or you simply crave doing low-level editing of config files, here are instructions that mimic what the helper tool would normally do.\
+Open the appropriate .ini file in a text editor and do a find & replace on all occurrences of the following line, or use `sed` if you are a Linux/UNIX wizard:
 ```
 post_process = /You-need-to-update-print-configs/see-https://bit.ly/3l13MrN
 ```
